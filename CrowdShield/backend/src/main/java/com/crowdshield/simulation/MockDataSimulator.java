@@ -2,6 +2,7 @@ package com.crowdshield.simulation;
 
 import com.crowdshield.alert.Alert;
 import com.crowdshield.alert.AlertService;
+import com.crowdshield.crowd.CrowdHistory;
 import com.crowdshield.notification.NotificationService;
 import com.crowdshield.recommendation.RecommendationService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,6 +24,7 @@ public class MockDataSimulator {
     private final AlertService alertService;
     private final NotificationService notificationService;
     private final RecommendationService recommendationService;
+    private final com.crowdshield.crowd.CrowdHistoryRepository crowdHistoryRepository;
     
     private final Random random = new Random();
 
@@ -63,5 +65,16 @@ public class MockDataSimulator {
                     "URGENT"
             );
         }
+        
+        // Save history every tick
+        CrowdHistory history = CrowdHistory.builder()
+            .cameraId("cam-sim-01")
+            .zone("Main Square")
+            .location("Main Square")
+            .density(density)
+            .riskScore(riskScore)
+            .timestamp(LocalDateTime.now())
+            .build();
+        crowdHistoryRepository.save(history);
     }
 }

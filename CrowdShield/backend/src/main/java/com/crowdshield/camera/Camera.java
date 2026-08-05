@@ -1,4 +1,4 @@
-package com.crowdshield.alert;
+package com.crowdshield.camera;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,28 +6,25 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "alerts")
+@Table(name = "cameras")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Alert {
+public class Camera {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String type;
-
-    @Column(length = 1000)
-    private String message;
+    private String name;
 
     private String location;
 
-    @Enumerated(EnumType.STRING)
-    private AlertSeverity severity;
+    private String zone;
 
-    private LocalDateTime createdAt;
-    
-    private boolean isRead;
+    @Enumerated(EnumType.STRING)
+    private CameraStatus status;
+
+    private LocalDateTime lastSeen;
 }

@@ -1,36 +1,54 @@
 package com.crowdshield.alert;
 
+import com.crowdshield.alert.dto.AlertDto;
+import com.crowdshield.alert.mapper.AlertMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AlertService {
 
     private final AlertRepository alertRepository;
+    private final AlertMapper alertMapper;
 
-    public List<Alert> getAllAlerts() {
-        return alertRepository.findAll();
+    public Page<AlertDto> getAllAlerts(String type, AlertSeverity severity, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return alertRepository.findFilteredAlerts(type, severity, startDate, endDate, pageable)
+                .map(alertMapper::toDto);
     }
 
-    public Alert createAlert(String type, String location, String description) {
+    public Page<AlertDto> getUnreadAlerts(Pageable pageable) {
+        return alertRepository.findByIsReadFalse(pageable)
+                .map(alertMapper::toDto);
+    }
+
+    public AlertDto createAlert(String type, String location, String message, AlertSeverity severity) {
         Alert alert = Alert.builder()
                 .type(type)
                 .location(location)
-                .description(description)
+                .message(message)
+                .severity(severity)
                 .createdAt(LocalDateTime.now())
-                .resolved(false)
+                .isRead(false)
                 .build();
-        return alertRepository.save(alert);
+        return alertMapper.toDto(alertRepository.save(alert));
     }
 
-    public Alert resolveAlert(Long id) {
+    public AlertDto markAsRead(Long id) {
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Alert not found with id: " + id));
-        alert.setResolved(true);
-        return alertRepository.save(alert);
+        alert.setRead(true);
+        return alertMapper.toDto(alertRepository.save(alert));
+    }
+
+    public void deleteAlert(Long id) {
+        if (!alertRepository.existsById(id)) {
+            throw new IllegalArgumentException("Alert not found with id: " + id);
+        }
+        alertRepository.deleteById(id);
     }
 }

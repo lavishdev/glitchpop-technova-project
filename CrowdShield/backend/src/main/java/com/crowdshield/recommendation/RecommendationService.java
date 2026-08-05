@@ -9,18 +9,36 @@ import java.util.List;
 public class RecommendationService {
 
     public List<String> getRecommendationsForDensity(int density) {
+        return getRecommendationsForRisk(density, 0.0, 0.0, 0.0);
+    }
+
+    public List<String> getRecommendationsForRisk(int density, double violenceScore, double fireScore, double smokeScore) {
         List<String> recommendations = new ArrayList<>();
-        
-        if (density > 150) {
-            recommendations.add("Deploy additional security personnel to the area.");
-            recommendations.add("Open secondary exit gates to facilitate crowd flow.");
-            recommendations.add("Broadcast a multilingual announcement to guide visitors.");
-        } else if (density > 100) {
-            recommendations.add("Monitor the area closely for sudden density spikes.");
-        } else {
-            recommendations.add("Crowd levels are normal. No action required.");
+
+        if (fireScore > 0.8 || smokeScore > 0.8) {
+            recommendations.add("Evacuate Area Immediately");
+            recommendations.add("Notify Fire Team");
+            recommendations.add("Block Entry to Zone");
         }
-        
+
+        if (violenceScore > 0.75) {
+            recommendations.add("Dispatch Police to Zone");
+            recommendations.add("Lock Nearby Gates");
+        }
+
+        if (density > 250) {
+            recommendations.add("Open Gate A to Relieve Pressure");
+            recommendations.add("Redirect Crowd to Alternative Exits");
+            recommendations.add("Deploy Security for Crowd Control");
+        } else if (density > 150) {
+            recommendations.add("Monitor Area Closely");
+            recommendations.add("Prepare to Open Overflow Gates");
+        }
+
+        if (recommendations.isEmpty()) {
+            recommendations.add("No immediate action required. Operations normal.");
+        }
+
         return recommendations;
     }
 }

@@ -1,10 +1,7 @@
 package com.crowdshield.incident;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -21,15 +18,20 @@ public class Incident {
     private Long id;
 
     private String title;
+    
+    @Column(length = 1000)
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    private IncidentSeverity severity;
+
+    @Enumerated(EnumType.STRING)
+    private IncidentStatus status;
+
     private String location;
     
-    @Column(name = "reported_by")
-    private String reportedBy;
-    
-    @Column(name = "reported_at")
-    private LocalDateTime reportedAt;
-    
-    private String status; // OPEN, IN_PROGRESS, RESOLVED
-}
+    private String imageUrl;
 
+    private LocalDateTime createdAt;
+    private LocalDateTime resolvedAt;
+}

@@ -1,11 +1,14 @@
 package com.crowdshield.incident;
 
 import com.crowdshield.common.ApiResponse;
+import com.crowdshield.incident.dto.IncidentCreateDto;
+import com.crowdshield.incident.dto.IncidentDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/incidents")
@@ -15,17 +18,33 @@ public class IncidentController {
     private final IncidentService incidentService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Incident>>> getAllIncidents() {
-        return ResponseEntity.ok(ApiResponse.success(incidentService.getAllIncidents()));
+    public ResponseEntity<ApiResponse<Page<IncidentDto>>> getAllIncidents(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(incidentService.getAllIncidents(pageable)));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<IncidentDto>> getIncidentById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(incidentService.getIncidentById(id)));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Incident>> reportIncident(@RequestBody Incident incident) {
-        return ResponseEntity.ok(ApiResponse.success(incidentService.reportIncident(incident)));
+    public ResponseEntity<ApiResponse<IncidentDto>> reportIncident(@Valid @RequestBody IncidentCreateDto createDto) {
+        return ResponseEntity.ok(ApiResponse.success(incidentService.reportIncident(createDto)));
     }
 
-    @PutMapping("/{id}/status")
-    public ResponseEntity<ApiResponse<Incident>> updateIncidentStatus(@PathVariable Long id, @RequestParam String status) {
-        return ResponseEntity.ok(ApiResponse.success(incidentService.updateStatus(id, status)));
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<IncidentDto>> updateIncident(@PathVariable Long id, @Valid @RequestBody IncidentCreateDto updateDto) {
+        return ResponseEntity.ok(ApiResponse.success(incidentService.updateIncident(id, updateDto)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteIncident(@PathVariable Long id) {
+        incidentService.deleteIncident(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Incident deleted successfully"));
+    }
+
+    @PatchMapping("/{id}/resolve")
+    public ResponseEntity<ApiResponse<IncidentDto>> resolveIncident(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(incidentService.resolveIncident(id)));
     }
 }

@@ -1,10 +1,7 @@
 package com.crowdshield.crowd;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -20,12 +17,15 @@ public class CrowdHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String location;
-    private int density; // number of people
+    private String cameraId;
     
-    @Column(name = "risk_score")
-    private double riskScore; // 0.0 to 100.0
+    private String zone;
     
+    private String location; // kept for legacy webhook compatibility
+
+    private int density;
+
+    private double riskScore;
+
     private LocalDateTime timestamp;
 }
-
