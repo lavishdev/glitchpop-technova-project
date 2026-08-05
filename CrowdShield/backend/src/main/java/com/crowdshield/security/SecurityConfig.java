@@ -1,4 +1,4 @@
-﻿package com.crowdshield.security;
+package com.crowdshield.security;
 
 import com.crowdshield.user.UserRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-﻿package com.crowdshield.crowd;
+package com.crowdshield.crowd;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

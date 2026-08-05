@@ -1,4 +1,4 @@
-﻿package com.crowdshield.incident;
+package com.crowdshield.incident;
 
 import com.crowdshield.incident.Incident;
 import org.springframework.data.jpa.repository.JpaRepository;

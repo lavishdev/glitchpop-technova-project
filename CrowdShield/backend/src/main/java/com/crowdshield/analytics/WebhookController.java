@@ -1,4 +1,4 @@
-﻿package com.crowdshield.analytics;
+package com.crowdshield.analytics;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

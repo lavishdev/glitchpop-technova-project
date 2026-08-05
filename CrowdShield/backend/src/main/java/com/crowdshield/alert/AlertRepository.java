@@ -1,4 +1,4 @@
-﻿package com.crowdshield.alert;
+package com.crowdshield.alert;
 
 import com.crowdshield.alert.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-﻿package com.crowdshield.incident;
+package com.crowdshield.incident;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

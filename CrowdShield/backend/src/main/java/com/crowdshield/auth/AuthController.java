@@ -1,4 +1,4 @@
-﻿package com.crowdshield.auth;
+package com.crowdshield.auth;
 
 import com.crowdshield.user.User;
 import com.crowdshield.user.UserRepository;
