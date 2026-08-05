@@ -32,7 +32,7 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            com.crowdshield.model.User user = userRepository.findByUsername(username)
+            com.crowdshield.user.User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
             return User.builder()
                     .username(user.getUsername())
