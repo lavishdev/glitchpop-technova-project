@@ -1,0 +1,1 @@
+﻿<!-- Application properties and resources -->
