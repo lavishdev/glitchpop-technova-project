@@ -1,4 +1,4 @@
-package com.crowdshield.security;
+﻿package com.crowdshield.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -63,3 +63,4 @@ public class JwtUtil {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }
+

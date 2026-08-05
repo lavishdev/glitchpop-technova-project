@@ -1,4 +1,4 @@
-package com.crowdshield.model;
+﻿package com.crowdshield.alert;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,22 +9,24 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "crowd_history")
+@Table(name = "alerts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CrowdHistory {
-
+public class Alert {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String type; // e.g., OVERCROWDING, SOS
     private String location;
-    private int density; // number of people
+    private String description;
     
-    @Column(name = "risk_score")
-    private double riskScore; // 0.0 to 100.0
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
     
-    private LocalDateTime timestamp;
+    private boolean resolved;
 }
+

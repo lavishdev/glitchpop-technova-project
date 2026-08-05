@@ -1,4 +1,4 @@
-package com.crowdshield.websocket;
+﻿package com.crowdshield.websocket;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -21,3 +21,4 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws-crowdshield").setAllowedOriginPatterns("*").withSockJS();
     }
 }
+

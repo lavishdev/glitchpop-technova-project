@@ -1,7 +1,7 @@
-package com.crowdshield.controller;
+﻿package com.crowdshield.auth;
 
-import com.crowdshield.model.User;
-import com.crowdshield.repository.UserRepository;
+import com.crowdshield.user.User;
+import com.crowdshield.user.UserRepository;
 import com.crowdshield.security.JwtUtil;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -56,3 +56,4 @@ public class AuthController {
         private final String token;
     }
 }
+

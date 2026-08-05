@@ -1,4 +1,4 @@
-package com.crowdshield.controller;
+﻿package com.crowdshield.analytics;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,3 +31,4 @@ public class WebhookController {
         return ResponseEntity.ok("Alert broadcasted");
     }
 }
+

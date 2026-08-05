@@ -1,4 +1,4 @@
-package com.crowdshield.simulation;
+﻿package com.crowdshield.simulation;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -43,3 +43,4 @@ public class MockDataSimulator {
         }
     }
 }
+

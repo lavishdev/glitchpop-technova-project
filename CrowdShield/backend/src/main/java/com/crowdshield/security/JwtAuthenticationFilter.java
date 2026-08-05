@@ -1,4 +1,4 @@
-package com.crowdshield.security;
+﻿package com.crowdshield.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -50,3 +50,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+

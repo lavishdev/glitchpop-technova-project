@@ -1,4 +1,4 @@
-package com.crowdshield.model;
+﻿package com.crowdshield.user;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,3 +27,4 @@ public class User {
     @Column(nullable = false)
     private String role; // e.g., ROLE_ADMIN, ROLE_USER
 }
+

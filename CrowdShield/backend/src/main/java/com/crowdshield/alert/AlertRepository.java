@@ -1,7 +1,8 @@
-package com.crowdshield.repository;
+﻿package com.crowdshield.alert;
 
-import com.crowdshield.model.Alert;
+import com.crowdshield.alert.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AlertRepository extends JpaRepository<Alert, Long> {
 }
+

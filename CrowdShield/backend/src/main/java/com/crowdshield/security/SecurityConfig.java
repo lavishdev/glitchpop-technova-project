@@ -1,6 +1,6 @@
-package com.crowdshield.security;
+﻿package com.crowdshield.security;
 
-import com.crowdshield.repository.UserRepository;
+import com.crowdshield.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,3 +76,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+

@@ -1,7 +1,7 @@
-package com.crowdshield.controller;
+﻿package com.crowdshield.incident;
 
-import com.crowdshield.model.Incident;
-import com.crowdshield.repository.IncidentRepository;
+import com.crowdshield.incident.Incident;
+import com.crowdshield.incident.IncidentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,3 +40,4 @@ public class IncidentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 }
+

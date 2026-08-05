@@ -1,7 +1,7 @@
-package com.crowdshield.controller;
+﻿package com.crowdshield.dashboard;
 
-import com.crowdshield.model.CrowdHistory;
-import com.crowdshield.repository.CrowdHistoryRepository;
+import com.crowdshield.crowd.CrowdHistory;
+import com.crowdshield.crowd.CrowdHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,3 +28,4 @@ public class DashboardController {
         return ResponseEntity.ok("{\"status\": \"operational\", \"totalIncidents\": 0}");
     }
 }
+

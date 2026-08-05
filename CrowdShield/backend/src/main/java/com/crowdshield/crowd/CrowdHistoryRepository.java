@@ -1,7 +1,8 @@
-package com.crowdshield.repository;
+﻿package com.crowdshield.crowd;
 
-import com.crowdshield.model.CrowdHistory;
+import com.crowdshield.crowd.CrowdHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CrowdHistoryRepository extends JpaRepository<CrowdHistory, Long> {
 }
+

@@ -1,4 +1,4 @@
-package com.crowdshield.model;
+﻿package com.crowdshield.incident;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,23 +9,27 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "alerts")
+@Table(name = "incidents")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Alert {
-    
+public class Incident {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String type; // e.g., OVERCROWDING, SOS
-    private String location;
+    private String title;
     private String description;
+    private String location;
     
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "reported_by")
+    private String reportedBy;
     
-    private boolean resolved;
+    @Column(name = "reported_at")
+    private LocalDateTime reportedAt;
+    
+    private String status; // OPEN, IN_PROGRESS, RESOLVED
 }
+
