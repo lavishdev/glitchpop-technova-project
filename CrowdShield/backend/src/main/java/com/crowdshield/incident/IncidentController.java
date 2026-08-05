@@ -1,12 +1,10 @@
-﻿package com.crowdshield.incident;
+package com.crowdshield.incident;
 
-import com.crowdshield.incident.Incident;
-import com.crowdshield.incident.IncidentRepository;
+import com.crowdshield.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -14,30 +12,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IncidentController {
 
-    private final IncidentRepository incidentRepository;
+    private final IncidentService incidentService;
 
     @GetMapping
-    public ResponseEntity<List<Incident>> getAllIncidents() {
-        return ResponseEntity.ok(incidentRepository.findAll());
+    public ResponseEntity<ApiResponse<List<Incident>>> getAllIncidents() {
+        return ResponseEntity.ok(ApiResponse.success(incidentService.getAllIncidents()));
     }
 
     @PostMapping
-    public ResponseEntity<Incident> reportIncident(@RequestBody Incident incident) {
-        incident.setReportedAt(LocalDateTime.now());
-        if (incident.getStatus() == null) {
-            incident.setStatus("OPEN");
-        }
-        return ResponseEntity.ok(incidentRepository.save(incident));
+    public ResponseEntity<ApiResponse<Incident>> reportIncident(@RequestBody Incident incident) {
+        return ResponseEntity.ok(ApiResponse.success(incidentService.reportIncident(incident)));
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<Incident> updateIncidentStatus(@PathVariable Long id, @RequestParam String status) {
-        return incidentRepository.findById(id)
-                .map(incident -> {
-                    incident.setStatus(status);
-                    return ResponseEntity.ok(incidentRepository.save(incident));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<Incident>> updateIncidentStatus(@PathVariable Long id, @RequestParam String status) {
+        return ResponseEntity.ok(ApiResponse.success(incidentService.updateStatus(id, status)));
     }
 }
-
