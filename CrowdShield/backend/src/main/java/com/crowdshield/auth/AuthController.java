@@ -11,20 +11,26 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import com.crowdshield.common.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(name = "Authentication", description = "Endpoints for user registration and login")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final com.crowdshield.activity.ActivityLogService activityLogService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthRequest request) {
+    public ResponseEntity<ApiResponse<String>> register(@RequestBody AuthRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username already exists");
+            return ResponseEntity.badRequest().body(ApiResponse.error("Username already exists"));
         }
         User user = User.builder()
                 .username(request.getUsername())
@@ -32,16 +38,22 @@ public class AuthController {
                 .role("ROLE_USER")
                 .build();
         userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+        
+        activityLogService.logActivity(request.getUsername(), com.crowdshield.activity.ActivityAction.REGISTER, "User registered successfully");
+        
+        return ResponseEntity.ok(ApiResponse.success("User registered successfully"));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
         String token = jwtUtil.generateToken(request.getUsername());
-        return ResponseEntity.ok(new AuthResponse(token));
+        
+        activityLogService.logActivity(request.getUsername(), com.crowdshield.activity.ActivityAction.LOGIN, "User logged in successfully");
+        
+        return ResponseEntity.ok(ApiResponse.success(new AuthResponse(token)));
     }
 
     @Data

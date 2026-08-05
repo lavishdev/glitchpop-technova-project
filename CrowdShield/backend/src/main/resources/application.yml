@@ -28,3 +28,16 @@ logging:
     org.springframework.web: INFO
     org.springframework.security: INFO
     com.crowdshield: DEBUG
+
+crowd:
+  maxDensity: 300
+  criticalDensity: 250
+  fireThreshold: 0.8
+  violenceThreshold: 0.75
+  smokeThreshold: 0.85
+
+simulator:
+  enabled: true
+
+notification:
+  enabled: true

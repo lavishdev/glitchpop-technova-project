@@ -11,9 +11,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/alerts")
 @RequiredArgsConstructor
+@Tag(name = "Alerts", description = "Manage system alerts")
 public class AlertController {
 
     private final AlertService alertService;

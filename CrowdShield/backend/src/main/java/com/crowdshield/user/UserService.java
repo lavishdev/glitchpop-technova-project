@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final com.crowdshield.activity.ActivityLogService activityLogService;
 
     public Page<UserDto> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(this::toDto);
@@ -33,7 +34,11 @@ public class UserService {
         }
         
         user.setRole(newRole);
-        return toDto(userRepository.save(user));
+        User saved = userRepository.save(user);
+        
+        activityLogService.logActivity(getUsername(), com.crowdshield.activity.ActivityAction.ROLE_CHANGED, "Changed role of user " + saved.getUsername() + " to " + newRole);
+        
+        return toDto(saved);
     }
 
     public void deleteUser(Long id) {
@@ -49,5 +54,10 @@ public class UserService {
                 .username(user.getUsername())
                 .role(user.getRole())
                 .build();
+    }
+    
+    private String getUsername() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.getName() != null) ? auth.getName() : "system";
     }
 }

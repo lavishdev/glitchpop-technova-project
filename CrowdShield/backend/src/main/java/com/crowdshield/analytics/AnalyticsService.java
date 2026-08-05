@@ -27,6 +27,21 @@ public class AnalyticsService {
     private final RecommendationService recommendationService;
     private final SimpMessagingTemplate messagingTemplate;
 
+    @org.springframework.beans.factory.annotation.Value("${crowd.maxDensity:300}")
+    private double maxDensity;
+
+    @org.springframework.beans.factory.annotation.Value("${crowd.criticalDensity:250}")
+    private int criticalDensity;
+
+    @org.springframework.beans.factory.annotation.Value("${crowd.fireThreshold:0.8}")
+    private double fireThreshold;
+
+    @org.springframework.beans.factory.annotation.Value("${crowd.violenceThreshold:0.75}")
+    private double violenceThreshold;
+
+    @org.springframework.beans.factory.annotation.Value("${crowd.smokeThreshold:0.85}")
+    private double smokeThreshold;
+
     public AlertDto processPrediction(PredictionRequestDto request) {
         // Calculate risk score based on inputs
         double riskScore = calculateRiskScore(request);
@@ -55,13 +70,13 @@ public class AnalyticsService {
 
         // 3. Threshold Checks & Alerts
         AlertDto alert = null;
-        if (request.getFireScore() > 0.8) {
+        if (request.getFireScore() > fireThreshold) {
             alert = createAndBroadcastAlert("FIRE_DETECTED", "High probability of fire detected at " + request.getCameraId(), AlertSeverity.CRITICAL);
-        } else if (request.getViolenceScore() > 0.75) {
+        } else if (request.getViolenceScore() > violenceThreshold) {
             alert = createAndBroadcastAlert("VIOLENCE_DETECTED", "Violence detected at " + request.getCameraId(), AlertSeverity.HIGH);
-        } else if (request.getSmokeScore() > 0.85) {
+        } else if (request.getSmokeScore() > smokeThreshold) {
             alert = createAndBroadcastAlert("SMOKE_DETECTED", "Smoke detected at " + request.getCameraId(), AlertSeverity.HIGH);
-        } else if (request.getDensity() > 250) {
+        } else if (request.getDensity() > criticalDensity) {
             alert = createAndBroadcastAlert("OVERCROWDING", "Critical crowd density at " + request.getCameraId(), AlertSeverity.HIGH);
         }
 
@@ -69,7 +84,7 @@ public class AnalyticsService {
     }
 
     private double calculateRiskScore(PredictionRequestDto request) {
-        double score = (request.getDensity() / 300.0) * 40; // Max 40 from density
+        double score = (request.getDensity() / maxDensity) * 40; // Max 40 from density
         score += request.getViolenceScore() * 30; // Max 30 from violence
         score += request.getFireScore() * 20; // Max 20 from fire
         score += request.getSmokeScore() * 10; // Max 10 from smoke

@@ -16,6 +16,7 @@ public class IncidentService {
 
     private final IncidentRepository incidentRepository;
     private final IncidentMapper incidentMapper;
+    private final com.crowdshield.activity.ActivityLogService activityLogService;
 
     public Page<IncidentDto> getAllIncidents(Pageable pageable) {
         return incidentRepository.findAll(pageable).map(incidentMapper::toDto);
@@ -31,7 +32,12 @@ public class IncidentService {
         Incident incident = incidentMapper.toEntity(createDto);
         incident.setCreatedAt(LocalDateTime.now());
         incident.setStatus(IncidentStatus.OPEN);
-        return incidentMapper.toDto(incidentRepository.save(incident));
+        Incident saved = incidentRepository.save(incident);
+        
+        String username = getUsername();
+        activityLogService.logActivity(username, com.crowdshield.activity.ActivityAction.INCIDENT_CREATED, "Created incident: " + saved.getTitle());
+        
+        return incidentMapper.toDto(saved);
     }
 
     public IncidentDto updateIncident(Long id, IncidentCreateDto updateDto) {
@@ -61,6 +67,16 @@ public class IncidentService {
         incident.setStatus(IncidentStatus.RESOLVED);
         incident.setResolvedAt(LocalDateTime.now());
         
-        return incidentMapper.toDto(incidentRepository.save(incident));
+        Incident saved = incidentRepository.save(incident);
+        
+        String username = getUsername();
+        activityLogService.logActivity(username, com.crowdshield.activity.ActivityAction.INCIDENT_RESOLVED, "Resolved incident: " + saved.getTitle());
+        
+        return incidentMapper.toDto(saved);
+    }
+    
+    private String getUsername() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.getName() != null) ? auth.getName() : "system";
     }
 }

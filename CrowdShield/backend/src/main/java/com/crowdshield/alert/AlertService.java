@@ -15,6 +15,7 @@ public class AlertService {
 
     private final AlertRepository alertRepository;
     private final AlertMapper alertMapper;
+    private final com.crowdshield.activity.ActivityLogService activityLogService;
 
     public Page<AlertDto> getAllAlerts(String type, AlertSeverity severity, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
         return alertRepository.findFilteredAlerts(type, severity, startDate, endDate, pageable)
@@ -35,7 +36,9 @@ public class AlertService {
                 .createdAt(LocalDateTime.now())
                 .isRead(false)
                 .build();
-        return alertMapper.toDto(alertRepository.save(alert));
+        Alert saved = alertRepository.save(alert);
+        activityLogService.logActivity(getUsername(), com.crowdshield.activity.ActivityAction.ALERT_CREATED, "Created alert: " + saved.getType());
+        return alertMapper.toDto(saved);
     }
 
     public AlertDto markAsRead(Long id) {
@@ -50,5 +53,10 @@ public class AlertService {
             throw new IllegalArgumentException("Alert not found with id: " + id);
         }
         alertRepository.deleteById(id);
+    }
+    
+    private String getUsername() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.getName() != null) ? auth.getName() : "system";
     }
 }

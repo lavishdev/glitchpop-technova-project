@@ -10,9 +10,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/incidents")
 @RequiredArgsConstructor
+@Tag(name = "Incidents", description = "Manage crowd incidents")
 public class IncidentController {
 
     private final IncidentService incidentService;

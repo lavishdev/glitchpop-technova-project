@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
+@Tag(name = "Dashboard", description = "Aggregated statistics for dashboard")
 public class DashboardController {
 
     private final DashboardService dashboardService;

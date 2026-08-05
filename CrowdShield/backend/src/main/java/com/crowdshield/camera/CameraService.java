@@ -16,6 +16,7 @@ public class CameraService {
     
     private final CameraRepository cameraRepository;
     private final CameraMapper cameraMapper;
+    private final com.crowdshield.activity.ActivityLogService activityLogService;
 
     public Page<CameraDto> getAllCameras(Pageable pageable) {
         return cameraRepository.findAll(pageable).map(cameraMapper::toDto);
@@ -26,7 +27,9 @@ public class CameraService {
         if (camera.getStatus() == CameraStatus.ONLINE) {
             camera.setLastSeen(LocalDateTime.now());
         }
-        return cameraMapper.toDto(cameraRepository.save(camera));
+        Camera saved = cameraRepository.save(camera);
+        activityLogService.logActivity(getUsername(), com.crowdshield.activity.ActivityAction.CAMERA_CREATED, "Created camera: " + saved.getName());
+        return cameraMapper.toDto(saved);
     }
 
     public CameraDto updateCamera(Long id, CameraCreateDto dto) {
@@ -39,7 +42,9 @@ public class CameraService {
         if (camera.getStatus() == CameraStatus.ONLINE) {
             camera.setLastSeen(LocalDateTime.now());
         }
-        return cameraMapper.toDto(cameraRepository.save(camera));
+        Camera saved = cameraRepository.save(camera);
+        activityLogService.logActivity(getUsername(), com.crowdshield.activity.ActivityAction.CAMERA_UPDATED, "Updated camera: " + saved.getName());
+        return cameraMapper.toDto(saved);
     }
 
     public void deleteCamera(Long id) {
@@ -47,5 +52,10 @@ public class CameraService {
             throw new IllegalArgumentException("Camera not found");
         }
         cameraRepository.deleteById(id);
+    }
+    
+    private String getUsername() {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.getName() != null) ? auth.getName() : "system";
     }
 }

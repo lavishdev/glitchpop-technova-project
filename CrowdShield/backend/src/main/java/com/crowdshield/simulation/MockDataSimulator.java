@@ -16,8 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "simulator.enabled", havingValue = "true")
 public class MockDataSimulator {
 
     private final SimpMessagingTemplate messagingTemplate;
