@@ -7,6 +7,8 @@ from models.schemas import (
     FrameExtractionMetadata,
     PerFrameCount,
     PersonDetectionMetadata,
+    TrackItem,
+    TrackingMetadata,
     VideoUploadResponse,
 )
 
@@ -19,5 +21,7 @@ __all__ = [
     "FrameExtractionMetadata",
     "PerFrameCount",
     "PersonDetectionMetadata",
+    "TrackItem",
+    "TrackingMetadata",
     "VideoUploadResponse",
 ]

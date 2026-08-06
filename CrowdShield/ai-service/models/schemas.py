@@ -48,6 +48,19 @@ class PersonDetectionMetadata(BaseModel):
     detections_directory: str = Field(..., examples=["C:\\path\\to\\outputs\\detections\\550e8400-e29b-41d4-a716-446655440000"])
 
 
+class TrackItem(BaseModel):
+    frame: str = Field(..., examples=["frame_000001.jpg"])
+    track_id: int = Field(..., examples=[1])
+    bbox: List[int] = Field(..., examples=[[120, 84, 210, 325]])
+    confidence: float = Field(..., examples=[0.91])
+
+
+class TrackingMetadata(BaseModel):
+    tracked_frames: int = Field(..., examples=[341])
+    unique_people: int = Field(..., examples=[27])
+    tracks: List[TrackItem]
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -56,3 +69,4 @@ class VideoUploadResponse(BaseModel):
     upload: UploadInfo
     frame_extraction: FrameExtractionMetadata
     person_detection: PersonDetectionMetadata
+    tracking: TrackingMetadata

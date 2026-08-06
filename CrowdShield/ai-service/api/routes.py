@@ -7,11 +7,13 @@ from models.schemas import (
     HealthResponse,
     PersonDetectionMetadata,
     RootResponse,
+    TrackingMetadata,
     UploadErrorResponse,
     UploadInfo,
     VideoUploadResponse,
 )
 from tracking.frame_extractor import FrameExtractor
+from tracking.multi_object_tracker import MultiObjectTracker
 from tracking.person_detector import PersonDetector
 from utils.file_utils import is_allowed_video_extension, save_upload_file
 from utils.logger import logger
@@ -54,14 +56,14 @@ async def get_health() -> HealthResponse:
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": ErrorResponse,
-            "description": "Unexpected internal server error, frame extraction, or detection failure"
+            "description": "Unexpected internal server error, extraction, detection, or tracking failure"
         }
     },
     status_code=status.HTTP_200_OK,
-    summary="Upload Video, Extract Frames, and Detect Persons"
+    summary="Upload Video, Extract Frames, Detect Persons, and Track Objects"
 )
 async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
-    """Accept, validate, and save an uploaded video file, extract frames, and run YOLOv11 person detection."""
+    """Accept, validate, and save an uploaded video file, extract frames, detect persons, and run ByteTrack multi-object tracking."""
     if not file.filename or not is_allowed_video_extension(file.filename):
         logger.warning(f"Rejected video upload with unsupported extension: '{file.filename}'")
         raise HTTPException(
@@ -113,6 +115,23 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Video uploaded and frames extracted successfully, but person detection failed."
         )
 
+    try:
+        tracker = MultiObjectTracker()
+        tracking_result = tracker.process_frames_directory(
+            frames_dir=extraction_result["frames_directory"]
+        )
+        logger.info(
+            f"Multi-object tracking complete for '{saved_path.name}': "
+            f"{tracking_result['unique_people']} unique people tracked across "
+            f"{tracking_result['tracked_frames']} frames"
+        )
+    except Exception as exc:
+        logger.error(f"Multi-object tracking failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Detection complete, but multi-object tracking failed."
+        )
+
     return VideoUploadResponse(
         message="Video uploaded and processed successfully",
         upload=UploadInfo(
@@ -121,5 +140,6 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             file_size=file_size
         ),
         frame_extraction=FrameExtractionMetadata(**extraction_result),
-        person_detection=PersonDetectionMetadata(**detection_result)
+        person_detection=PersonDetectionMetadata(**detection_result),
+        tracking=TrackingMetadata(**tracking_result)
     )
