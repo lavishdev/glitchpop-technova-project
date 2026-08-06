@@ -14,12 +14,30 @@ class ErrorResponse(BaseModel):
     detail: str = Field(..., examples=["An internal server error occurred."])
 
 
-class VideoUploadResponse(BaseModel):
-    message: str = Field(default="Video uploaded successfully", examples=["Video uploaded successfully"])
+class UploadErrorResponse(BaseModel):
+    detail: str = Field(..., examples=["Unsupported file type. Allowed extensions: .mp4, .avi, .mov, .mkv"])
+
+
+class UploadInfo(BaseModel):
     filename: str = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000.mp4"])
     content_type: str = Field(..., examples=["video/mp4"])
     file_size: int = Field(..., examples=[1048576])
 
 
-class UploadErrorResponse(BaseModel):
-    detail: str = Field(..., examples=["Unsupported file type. Allowed extensions: .mp4, .avi, .mov, .mkv"])
+class FrameExtractionMetadata(BaseModel):
+    video_name: str = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
+    fps: float = Field(..., examples=[30.0])
+    total_frames: int = Field(..., examples=[300])
+    width: int = Field(..., examples=[1920])
+    height: int = Field(..., examples=[1080])
+    frames_directory: str = Field(..., examples=["C:\\path\\to\\outputs\\frames\\550e8400-e29b-41d4-a716-446655440000"])
+    extracted_frames: int = Field(..., examples=[300])
+
+
+class VideoUploadResponse(BaseModel):
+    message: str = Field(
+        default="Video uploaded and processed successfully",
+        examples=["Video uploaded and processed successfully"]
+    )
+    upload: UploadInfo
+    frame_extraction: FrameExtractionMetadata

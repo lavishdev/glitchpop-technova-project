@@ -3,11 +3,14 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from config.settings import settings
 from models.schemas import (
     ErrorResponse,
+    FrameExtractionMetadata,
     HealthResponse,
     RootResponse,
     UploadErrorResponse,
+    UploadInfo,
     VideoUploadResponse,
 )
+from tracking.frame_extractor import FrameExtractor
 from utils.file_utils import is_allowed_video_extension, save_upload_file
 from utils.logger import logger
 
@@ -49,14 +52,14 @@ async def get_health() -> HealthResponse:
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": ErrorResponse,
-            "description": "Unexpected internal server error"
+            "description": "Unexpected internal server error or frame extraction failure"
         }
     },
     status_code=status.HTTP_200_OK,
-    summary="Upload Video File"
+    summary="Upload Video File and Extract Frames"
 )
 async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
-    """Accept, validate, and save an uploaded video file."""
+    """Accept, validate, and save an uploaded video file, then extract all frames immediately."""
     if not file.filename or not is_allowed_video_extension(file.filename):
         logger.warning(f"Rejected video upload with unsupported extension: '{file.filename}'")
         raise HTTPException(
@@ -68,18 +71,35 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
         saved_path = await save_upload_file(file)
         file_size = saved_path.stat().st_size
         logger.info(f"Video uploaded successfully: '{saved_path.name}' ({file_size} bytes)")
-
-        return VideoUploadResponse(
-            message="Video uploaded successfully",
-            filename=saved_path.name,
-            content_type=file.content_type or "application/octet-stream",
-            file_size=file_size
-        )
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Unexpected failure while processing video upload for '{file.filename}': {exc}", exc_info=True)
+        logger.error(f"Unexpected failure while saving uploaded video '{file.filename}': {exc}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process video upload due to an internal server error."
+            detail="Failed to save video upload due to an internal server error."
         )
+
+    try:
+        extractor = FrameExtractor(video_path=saved_path)
+        extraction_result = extractor.extract_frames()
+        logger.info(
+            f"Frame extraction complete for '{saved_path.name}': "
+            f"{extraction_result['extracted_frames']} frames extracted"
+        )
+    except Exception as exc:
+        logger.error(f"Frame extraction failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Video uploaded successfully, but frame extraction failed."
+        )
+
+    return VideoUploadResponse(
+        message="Video uploaded and processed successfully",
+        upload=UploadInfo(
+            filename=saved_path.name,
+            content_type=file.content_type or "application/octet-stream",
+            file_size=file_size
+        ),
+        frame_extraction=FrameExtractionMetadata(**extraction_result)
+    )
