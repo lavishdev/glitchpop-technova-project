@@ -1,14 +1,13 @@
-export type CameraStatus = 'online' | 'offline' | 'warning' | 'maintenance';
+export type CameraStatus = 'ONLINE' | 'OFFLINE' | 'MAINTENANCE';
 
 export interface CameraStream {
-  id: string;
+  id: number;
   name: string;
+  location: string;
   zone: string;
-  ipAddress: string;
   status: CameraStatus;
+  lastSeen: string;
+  healthPercentage: number;
   resolution: string;
   fps: number;
-  streamUrl: string;
-  detectionActive: boolean;
-  type: 'Optical PTZ' | 'Thermal AI' | 'Fixed Wide-Angle';
 }

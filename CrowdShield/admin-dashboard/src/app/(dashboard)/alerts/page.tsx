@@ -20,14 +20,14 @@ export default function AlertsHistoryPage() {
   });
 
   const updateAlertStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) => alertService.updateAlertStatus(id, status),
+    mutationFn: ({ id }: { id: number }) => alertService.updateAlertStatus(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
     },
   });
 
-  const handleAcknowledge = (id: string) => {
-    updateAlertStatus.mutate({ id, status: "acknowledged" });
+  const handleAcknowledge = (id: number) => {
+    updateAlertStatus.mutate({ id });
   };
 
   const columns: Column<AlertItem>[] = [
@@ -44,9 +44,9 @@ export default function AlertsHistoryPage() {
       cell: (alert) => (
         <Badge
           variant={
-            alert.severity === "critical"
+            alert.severity === "CRITICAL"
               ? "danger"
-              : alert.severity === "high"
+              : alert.severity === "HIGH"
               ? "warning"
               : "info"
           }
@@ -57,13 +57,13 @@ export default function AlertsHistoryPage() {
       )
     },
     {
-      header: "Title & Description",
-      accessorKey: "title",
+      header: "Type & Message",
+      accessorKey: "type",
       sortable: true,
       cell: (alert) => (
         <div>
-          <p className="font-bold text-on-surface">{alert.title}</p>
-          <p className="text-[11px] text-on-surface-variant">{alert.description}</p>
+          <p className="font-bold text-on-surface">{alert.type}</p>
+          <p className="text-[11px] text-on-surface-variant">{alert.message}</p>
         </div>
       )
     },
@@ -74,53 +74,27 @@ export default function AlertsHistoryPage() {
       cell: (alert) => (
         <div>
           <p className="font-semibold">{alert.location}</p>
-          {alert.cameraId && (
-            <Link
-              href="/camera"
-              className="text-[10px] text-primary font-mono hover:underline flex items-center gap-0.5"
-            >
-              <span className="material-symbols-outlined text-xs">videocam</span>
-              {alert.cameraId}
-            </Link>
-          )}
         </div>
       )
     },
     {
       header: "Timestamp",
-      accessorKey: "timestamp",
+      accessorKey: "createdAt",
       sortable: true,
-      cell: (alert) => <span className="font-mono text-on-surface-variant">{alert.timestamp}</span>
+      cell: (alert) => <span className="font-mono text-on-surface-variant">{new Date(alert.createdAt).toLocaleString()}</span>
     },
-    {
-      header: "Assigned Officer",
-      accessorKey: "assignedOfficer",
-      sortable: true,
-      cell: (alert) => (
-        <span className="font-semibold">
-          {alert.assignedOfficer || (
-            <span className="text-on-surface-variant/60 italic">Unassigned</span>
-          )}
-        </span>
-      )
-    },
+
     {
       header: "Status",
-      accessorKey: "status",
+      accessorKey: "read",
       sortable: true,
       cell: (alert) => (
         <Badge
-          variant={
-            alert.status === "active"
-              ? "danger"
-              : alert.status === "acknowledged"
-              ? "warning"
-              : "success"
-          }
+          variant={alert.read ? "success" : "danger"}
           size="sm"
           dot
         >
-          {alert.status}
+          {alert.read ? "Read" : "Active"}
         </Badge>
       )
     },
@@ -128,7 +102,7 @@ export default function AlertsHistoryPage() {
       header: "Actions",
       cell: (alert) => (
         <div className="text-right">
-          {alert.status === "active" ? (
+          {!alert.read ? (
             <Button
               variant="outline"
               size="sm"
@@ -197,8 +171,8 @@ export default function AlertsHistoryPage() {
           data={filteredAlerts}
           isLoading={isLoading}
           isError={isError}
-          searchKey="title"
-          searchPlaceholder="Search alert title..."
+          searchKey="type"
+          searchPlaceholder="Search alert type..."
         />
       </Card>
     </div>

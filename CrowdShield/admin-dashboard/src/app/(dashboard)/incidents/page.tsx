@@ -13,26 +13,16 @@ import { IncidentRecord } from "@/features/incidents/types";
 export default function IncidentManagementPage() {
   const queryClient = useQueryClient();
   const { data: incidents = [] } = useQuery({ queryKey: ["incidents"], queryFn: incidentService.getIncidents });
-  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [selectedIncidentId, setSelectedIncidentId] = useState<number | null>(null);
   
   const selectedIncident = incidents.find(inc => inc.id === selectedIncidentId) || (incidents.length > 0 && !selectedIncidentId ? incidents[0] : null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newNote, setNewNote] = useState("");
-
   const updateIncidentMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<IncidentRecord> }) => incidentService.updateIncident(id, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<IncidentRecord> }) => incidentService.updateIncident(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["incidents"] });
     },
   });
-
-  const handleAddNote = () => {
-    if (!newNote || !selectedIncident) return;
-    const updatedNotes = [...selectedIncident.notes, newNote];
-    updateIncidentMutation.mutate({ id: selectedIncident.id, data: { notes: updatedNotes } });
-    setNewNote("");
-  };
 
   return (
     <div className="space-y-6">
@@ -74,9 +64,9 @@ export default function IncidentManagementPage() {
                 <span className="font-mono text-xs font-bold text-primary">{inc.id}</span>
                 <Badge
                   variant={
-                    inc.severity === "critical"
+                    inc.severity === "CRITICAL"
                       ? "danger"
-                      : inc.severity === "high"
+                      : inc.severity === "HIGH"
                       ? "warning"
                       : "info"
                   }
@@ -87,8 +77,8 @@ export default function IncidentManagementPage() {
               </div>
               <h4 className="text-xs font-bold text-on-surface">{inc.title}</h4>
               <div className="flex items-center justify-between text-[11px] text-on-surface-variant">
-                <span>{inc.zone}</span>
-                <span className="font-mono">{inc.reportedAt}</span>
+                <span>{inc.location}</span>
+                <span className="font-mono">{new Date(inc.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           ))}
@@ -99,7 +89,7 @@ export default function IncidentManagementPage() {
           {selectedIncident ? (
             <Card
               title={selectedIncident.title}
-              subtitle={`Ticket ID: ${selectedIncident.id} • Reported at ${selectedIncident.reportedAt}`}
+              subtitle={`Ticket ID: ${selectedIncident.id} • Reported at ${new Date(selectedIncident.createdAt).toLocaleString()}`}
               icon="local_police"
               action={
                 <Badge variant="warning" size="md">
@@ -109,79 +99,22 @@ export default function IncidentManagementPage() {
             >
               <div className="space-y-6">
                 {/* Details Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 text-xs">
+                <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 text-sm">
                   <div>
-                    <span className="text-on-surface-variant block text-[10px] uppercase font-bold">
-                      Category
+                    <span className="text-on-surface-variant block text-xs uppercase font-bold">
+                      Description
                     </span>
-                    <span className="font-bold text-on-surface mt-0.5 block">
-                      {selectedIncident.category}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-on-surface-variant block text-[10px] uppercase font-bold">
-                      Zone Location
-                    </span>
-                    <span className="font-bold text-on-surface mt-0.5 block">
-                      {selectedIncident.zone}
+                    <span className="font-bold text-on-surface mt-1 block">
+                      {selectedIncident.description}
                     </span>
                   </div>
                   <div>
-                    <span className="text-on-surface-variant block text-[10px] uppercase font-bold">
-                      Assigned Officer
+                    <span className="text-on-surface-variant block text-xs uppercase font-bold">
+                      Location
                     </span>
-                    <span className="font-bold text-primary mt-0.5 block">
-                      {selectedIncident.assignedTo}
+                    <span className="font-bold text-on-surface mt-1 block">
+                      {selectedIncident.location}
                     </span>
-                  </div>
-                </div>
-
-                {/* Assigned Response Units */}
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-                    Deployed Field Units
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedIncident.responseUnits.map((unit) => (
-                      <span
-                        key={unit}
-                        className="px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface text-xs font-semibold border border-outline-variant flex items-center gap-1.5"
-                      >
-                        <span className="material-symbols-outlined text-sm text-primary">
-                          local_tactical
-                        </span>
-                        {unit}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Timeline & Tactical Notes */}
-                <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-                    Tactical Log & Updates
-                  </h4>
-                  <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
-                    {selectedIncident.notes.map((note, index) => (
-                      <div
-                        key={index}
-                        className="p-3 rounded-lg bg-surface-container-low text-xs border border-outline-variant/40 font-mono text-on-surface"
-                      >
-                        • {note}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Add Note Bar */}
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Add tactical update note..."
-                      value={newNote}
-                      onChange={(e) => setNewNote(e.target.value)}
-                    />
-                    <Button variant="primary" size="md" onClick={handleAddNote}>
-                      Post Update
-                    </Button>
                   </div>
                 </div>
               </div>

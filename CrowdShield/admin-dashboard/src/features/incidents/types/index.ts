@@ -1,16 +1,14 @@
 import { SeverityLevel } from '../../alerts/types';
 
-export type IncidentStatus = 'open' | 'investigating' | 'dispatched' | 'resolved';
+export type IncidentStatus = 'OPEN' | 'INVESTIGATING' | 'DISPATCHED' | 'RESOLVED';
 
 export interface IncidentRecord {
-  id: string;
+  id: number;
   title: string;
-  category: string;
-  zone: string;
-  reportedAt: string;
+  description: string;
+  location: string;
   severity: SeverityLevel;
   status: IncidentStatus;
-  assignedTo: string;
-  responseUnits: string[];
-  notes: string[];
+  createdAt: string;
+  resolvedAt?: string;
 }

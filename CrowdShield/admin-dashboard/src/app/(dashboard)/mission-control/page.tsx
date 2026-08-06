@@ -49,7 +49,7 @@ export default function MissionControlPage() {
             {/* Stream Image Background */}
             <div
               className="absolute inset-0 bg-cover bg-center opacity-85"
-              style={{ backgroundImage: `url(${cam.streamUrl})` }}
+              style={{ backgroundImage: `url(https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=800&q=80)` }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-slate-950/40" />
 

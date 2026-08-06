@@ -1,13 +1,11 @@
-export type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';
+export type SeverityLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export interface AlertItem {
-  id: string;
-  title: string;
-  description: string;
+  id: number;
+  type: string;
+  message: string;
   location: string;
-  timestamp: string;
   severity: SeverityLevel;
-  status: 'active' | 'acknowledged' | 'resolved';
-  cameraId?: string;
-  assignedOfficer?: string;
+  createdAt: string;
+  read: boolean;
 }

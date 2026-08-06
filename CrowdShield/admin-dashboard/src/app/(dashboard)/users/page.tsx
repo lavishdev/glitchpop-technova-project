@@ -16,20 +16,18 @@ export default function UserManagementPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<UserAccount["role"]>("Security Officer");
+  const [role, setRole] = useState<UserAccount["role"]>("USER");
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) return;
 
     const newUser: UserAccount = {
-      id: `USR-${Math.floor(100 + Math.random() * 900)}`,
-      name,
+      id: Math.floor(100 + Math.random() * 900),
+      username: name,
       email,
       role,
-      department: "Security Operations",
-      status: "active",
-      lastActive: "Just now",
+      createdAt: new Date().toISOString(),
     };
 
     queryClient.setQueryData<UserAccount[]>(["users"], (old) => {
@@ -71,11 +69,9 @@ export default function UserManagementPage() {
             <thead className="bg-surface-container-low text-on-surface-variant uppercase font-bold tracking-wider border-b border-outline-variant/60">
               <tr>
                 <th className="px-4 py-3">User ID</th>
-                <th className="px-4 py-3">Full Name & Email</th>
+                <th className="px-4 py-3">Username & Email</th>
                 <th className="px-4 py-3">Assigned Role</th>
-                <th className="px-4 py-3">Department</th>
-                <th className="px-4 py-3">Last Active</th>
-                <th className="px-4 py-3">Account Status</th>
+                <th className="px-4 py-3">Created At</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -84,15 +80,15 @@ export default function UserManagementPage() {
                 <tr key={u.id} className="hover:bg-surface-container/50 transition-colors">
                   <td className="px-4 py-3 font-mono font-bold text-primary">{u.id}</td>
                   <td className="px-4 py-3">
-                    <p className="font-bold text-on-surface">{u.name}</p>
+                    <p className="font-bold text-on-surface">{u.username}</p>
                     <p className="text-[11px] text-on-surface-variant">{u.email}</p>
                   </td>
                   <td className="px-4 py-3">
                     <Badge
                       variant={
-                        u.role === "Super Admin"
+                        u.role === "ADMIN"
                           ? "danger"
-                          : u.role === "Security Officer"
+                          : u.role === "OPERATOR"
                           ? "info"
                           : "default"
                       }
@@ -101,14 +97,8 @@ export default function UserManagementPage() {
                       {u.role}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3">{u.department}</td>
                   <td className="px-4 py-3 font-mono text-on-surface-variant">
-                    {u.lastActive}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant={u.status === "active" ? "success" : "outline"} size="sm" dot>
-                      {u.status}
-                    </Badge>
+                    {new Date(u.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button variant="ghost" size="sm" icon="edit">
@@ -164,10 +154,9 @@ export default function UserManagementPage() {
               onChange={(e) => setRole(e.target.value as UserAccount["role"])}
               className="bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg px-3.5 py-2 focus:outline-none focus:border-primary"
             >
-              <option value="Security Officer">Security Officer</option>
-              <option value="Field Dispatcher">Field Dispatcher</option>
-              <option value="Data Auditor">Data Auditor</option>
-              <option value="Super Admin">Super Admin</option>
+              <option value="USER">User</option>
+              <option value="OPERATOR">Operator</option>
+              <option value="ADMIN">Admin</option>
             </select>
           </div>
         </form>

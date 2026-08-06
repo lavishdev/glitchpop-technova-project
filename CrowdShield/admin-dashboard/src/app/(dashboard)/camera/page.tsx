@@ -23,17 +23,15 @@ export default function CameraInfrastructurePage() {
     if (!newCamName) return;
 
     const newCam: CameraStream = {
-      id: `CAM-${Math.floor(100 + Math.random() * 900)}`,
+      id: Math.floor(100 + Math.random() * 900),
       name: newCamName,
+      location: "Local Deploy",
       zone: newCamZone || "Main Sector",
-      ipAddress: newCamIp || "192.168.10.250",
-      status: "online",
+      status: "ONLINE",
+      lastSeen: new Date().toISOString(),
+      healthPercentage: 100,
       resolution: "4K UHD",
       fps: 60,
-      streamUrl:
-        "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=800&q=80",
-      detectionActive: true,
-      type: "Optical PTZ",
     };
 
     queryClient.setQueryData<CameraStream[]>(["cameras"], (old) => {
@@ -75,14 +73,14 @@ export default function CameraInfrastructurePage() {
           <Card
             key={cam.id}
             title={cam.name}
-            subtitle={`${cam.zone} • ${cam.ipAddress}`}
+            subtitle={`${cam.zone} • ${cam.location}`}
             icon="videocam"
             action={
               <Badge
                 variant={
-                  cam.status === "online"
+                  cam.status === "ONLINE"
                     ? "success"
-                    : cam.status === "warning"
+                    : cam.status === "MAINTENANCE"
                     ? "warning"
                     : "danger"
                 }
@@ -98,7 +96,7 @@ export default function CameraInfrastructurePage() {
               <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video border border-slate-800 flex flex-col justify-between p-3 text-white">
                 <div
                   className="absolute inset-0 bg-cover bg-center opacity-85"
-                  style={{ backgroundImage: `url(${cam.streamUrl})` }}
+                  style={{ backgroundImage: `url(https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=800&q=80)` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40" />
 
@@ -116,10 +114,10 @@ export default function CameraInfrastructurePage() {
                 {/* Bottom Stream Controls Overlay */}
                 <div className="relative z-10 flex items-center justify-between text-xs bg-slate-900/80 backdrop-blur-md p-2 rounded-lg border border-slate-700">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-blue-400 font-bold">{cam.type}</span>
+                    <span className="font-mono text-blue-400 font-bold">Optical PTZ</span>
                     <span className="text-slate-500">•</span>
                     <span className="text-slate-300">
-                      AI Vision: {cam.detectionActive ? "ACTIVE" : "DISABLED"}
+                      AI Vision: ACTIVE
                     </span>
                   </div>
                   <div className="flex items-center gap-1">

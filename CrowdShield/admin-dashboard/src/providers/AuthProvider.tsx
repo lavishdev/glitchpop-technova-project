@@ -48,13 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Fallback user if token doesn't have details
       setUser({
-        id: decoded?.sub || 'user-1',
-        name: decoded?.name || 'Admin User',
+        id: decoded?.sub ? parseInt(decoded.sub, 10) || 1 : 1,
+        username: decoded?.name || 'Admin User',
         email: decoded?.email || 'admin@crowdshield.com',
-        role: decoded?.role || 'Super Admin',
-        department: 'Command Center',
-        status: 'active',
-        lastActive: new Date().toISOString()
+        role: decoded?.role || 'ADMIN',
+        createdAt: new Date().toISOString()
       });
     }
     setIsLoading(false);
@@ -66,13 +64,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const decoded = parseJwt(newToken);
     setUser({
-      id: userData?.id || decoded?.sub || 'user-1',
-      name: userData?.name || decoded?.name || 'Admin User',
+      id: userData?.id || (decoded?.sub ? parseInt(decoded.sub, 10) || 1 : 1),
+      username: userData?.username || decoded?.name || 'Admin User',
       email: userData?.email || decoded?.email || 'admin@crowdshield.com',
-      role: userData?.role || decoded?.role || 'Super Admin',
-      department: userData?.department || 'Command Center',
-      status: 'active',
-      lastActive: new Date().toISOString()
+      role: userData?.role || decoded?.role || 'ADMIN',
+      createdAt: new Date().toISOString()
     });
     
     router.push('/');

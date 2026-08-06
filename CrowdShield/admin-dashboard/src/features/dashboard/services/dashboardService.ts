@@ -1,13 +1,11 @@
 import axiosClient from '@/services/api/axiosClient';
 import { API_ENDPOINTS } from '@/services/endpoints';
 import { StatMetric, ZoneAnalytics } from '../types';
-import { MOCK_OVERVIEW_METRICS, MOCK_ZONE_ANALYTICS } from '../mock';
 import { AlertItem } from '@/features/alerts/types';
-import { MOCK_ALERTS } from '@/features/alerts/mock';
 import { IncidentRecord } from '@/features/incidents/types';
-import { MOCK_INCIDENTS } from '@/features/incidents/mock';
 import { CameraStream } from '@/features/cameras/types';
-import { MOCK_CAMERAS } from '@/features/cameras/mock';
+import { incidentService } from '@/features/incidents/services/incidentService';
+import { cameraService } from '@/features/cameras/services/cameraService';
 
 export const dashboardService = {
   getStats: async (): Promise<StatMetric[]> => {
@@ -60,31 +58,23 @@ export const dashboardService = {
     
     // Map ActivityLogDto to AlertItem to preserve the UI exactly as is.
     return logs.map((log: any) => ({
-      id: String(log.id),
-      title: log.action.replace('_', ' '),
-      description: log.details || "System activity recorded",
-      severity: "high", // Defaulting to high for visibility in the threat feed
-      status: "active", // Required by AlertItem
-      timestamp: new Date(log.timestamp).toLocaleTimeString(),
+      id: log.id,
+      type: log.action.replace('_', ' '),
+      message: log.details || "System activity recorded",
+      severity: "HIGH", // Defaulting to high for visibility in the threat feed
+      read: false, // Required by AlertItem
+      createdAt: log.timestamp,
       location: log.user || "System"
     })).slice(0, 3);
   },
   
   getActiveIncidents: async (): Promise<IncidentRecord[]> => {
-    // TODO: [ASSUMED BACKEND] Implement actual API call when ready
-    /*
-    const response = await axiosClient.get(API_ENDPOINTS.DASHBOARD_INCIDENTS_ACTIVE);
-    return response.data;
-    */
-    return Promise.resolve(MOCK_INCIDENTS);
+    const incidents = await incidentService.getIncidents();
+    return incidents.slice(0, 3); // Just show the top 3 on dashboard
   },
 
   getCameraFeeds: async (): Promise<CameraStream[]> => {
-    // TODO: [ASSUMED BACKEND] Implement actual API call when ready
-    /*
-    const response = await axiosClient.get(API_ENDPOINTS.DASHBOARD_CAMERAS_ACTIVE);
-    return response.data;
-    */
-    return Promise.resolve(MOCK_CAMERAS.slice(0, 2));
+    const cameras = await cameraService.getCameras();
+    return cameras.slice(0, 2); // Dashboard shows 2 cameras
   }
 };

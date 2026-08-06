@@ -169,8 +169,8 @@ export default function DashboardOverviewPage() {
                   className="group relative rounded-xl overflow-hidden border border-outline-variant/60 bg-slate-900 aspect-video flex flex-col justify-between p-3 text-white"
                 >
                   <div
-                    className="absolute inset-0 bg-cover bg-center opacity-80 group-hover:scale-105 transition-transform duration-500"
-                    style={{ backgroundImage: `url(${cam.streamUrl})` }}
+                    className="absolute inset-0 bg-cover bg-center opacity-85"
+                    style={{ backgroundImage: `url(https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=800&q=80)` }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
                   
@@ -188,7 +188,7 @@ export default function DashboardOverviewPage() {
                   {/* Bottom Feed Label */}
                   <div className="relative z-10">
                     <p className="text-xs font-bold text-white truncate">{cam.name}</p>
-                    <p className="text-[10px] text-slate-300 font-mono">{cam.zone} • {cam.type}</p>
+                    <p className="text-[10px] text-slate-300 font-mono">{cam.zone} • Optical PTZ</p>
                   </div>
                 </div>
               ))}
@@ -218,9 +218,9 @@ export default function DashboardOverviewPage() {
                   <div className="flex items-center justify-between">
                     <Badge
                       variant={
-                        alert.severity === "critical"
+                        alert.severity === "CRITICAL"
                           ? "danger"
-                          : alert.severity === "high"
+                          : alert.severity === "HIGH"
                           ? "warning"
                           : "info"
                       }
@@ -228,16 +228,16 @@ export default function DashboardOverviewPage() {
                     >
                       {alert.severity}
                     </Badge>
-                    <span className="text-[10px] text-on-surface-variant font-mono">
-                      {alert.timestamp}
-                    </span>
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-on-surface">{alert.title}</h4>
-                    <p className="text-[11px] text-on-surface-variant mt-0.5">
-                      {alert.description}
-                    </p>
+                    <span className="font-bold text-on-surface">{alert.type}</span>
+                    <span className="text-[11px] text-on-surface-variant font-mono">
+                      {new Date(alert.createdAt).toLocaleTimeString()}
+                    </span>
                   </div>
+                  <p className="text-xs text-on-surface-variant line-clamp-2">
+                    {alert.message}
+                  </p>
                   <div className="flex items-center justify-between pt-1 text-[11px] text-on-surface-variant/80 border-t border-outline-variant/30">
                     <span className="truncate">{alert.location}</span>
                     <Link

@@ -1,12 +1,9 @@
-export type UserRole = 'Super Admin' | 'Security Officer' | 'Data Auditor' | 'Field Dispatcher';
+export type UserRole = 'ADMIN' | 'USER' | 'OPERATOR';
 
 export interface UserAccount {
-  id: string;
-  name: string;
+  id: number;
+  username: string;
   email: string;
   role: UserRole;
-  department: string;
-  status: 'active' | 'inactive';
-  lastActive: string;
-  avatarUrl?: string;
+  createdAt: string;
 }
