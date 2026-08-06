@@ -1,6 +1,6 @@
 package com.crowdshield.analytics;
 
-import com.crowdshield.alert.AlertDto;
+import com.crowdshield.alert.dto.AlertDto;
 import com.crowdshield.alert.AlertService;
 import com.crowdshield.alert.AlertSeverity;
 import com.crowdshield.analytics.dto.PredictionRequestDto;

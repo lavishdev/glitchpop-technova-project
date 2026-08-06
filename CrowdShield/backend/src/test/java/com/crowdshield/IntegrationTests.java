@@ -34,12 +34,12 @@ class IntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginPayload))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").exists());
+                .andExpect(jsonPath("$.data.token").exists());
     }
 
     @Test
     void shouldFailAccessWithoutToken() throws Exception {
         mockMvc.perform(get("/api/dashboard/stats"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }

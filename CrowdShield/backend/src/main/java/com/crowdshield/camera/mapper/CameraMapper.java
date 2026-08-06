@@ -16,6 +16,9 @@ public class CameraMapper {
                 .zone(camera.getZone())
                 .status(camera.getStatus())
                 .lastSeen(camera.getLastSeen())
+                .healthPercentage(camera.getHealthPercentage())
+                .resolution(camera.getResolution())
+                .fps(camera.getFps())
                 .build();
     }
 

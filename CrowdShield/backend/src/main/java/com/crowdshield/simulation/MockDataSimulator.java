@@ -56,7 +56,7 @@ public class MockDataSimulator {
             String description = "Critical crowd density detected at Main Square. Immediate action recommended.";
             
             // 1. Create alert in database
-            Alert alert = alertService.createAlert("OVERCROWDING", "Main Square", description);
+            com.crowdshield.alert.dto.AlertDto alert = alertService.createAlert("OVERCROWDING", "Main Square", description, com.crowdshield.alert.AlertSeverity.HIGH);
             
             // 2. Broadcast via WebSocket
             messagingTemplate.convertAndSend("/topic/alerts", alert);

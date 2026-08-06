@@ -69,6 +69,9 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .zone("Main Square")
                 .status(CameraStatus.ONLINE)
                 .lastSeen(LocalDateTime.now())
+                .healthPercentage(98.5)
+                .resolution("4K UHD")
+                .fps(60)
                 .build());
 
         cameraRepository.save(Camera.builder()
@@ -77,6 +80,9 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .zone("North Gate")
                 .status(CameraStatus.ONLINE)
                 .lastSeen(LocalDateTime.now())
+                .healthPercentage(92.0)
+                .resolution("1080p FHD")
+                .fps(30)
                 .build());
 
         cameraRepository.save(Camera.builder()
@@ -85,6 +91,9 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .zone("East Wing")
                 .status(CameraStatus.OFFLINE)
                 .lastSeen(LocalDateTime.now().minusDays(1))
+                .healthPercentage(0.0)
+                .resolution("720p HD")
+                .fps(15)
                 .build());
 
         // 3. Seed Incidents
@@ -94,7 +103,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .location("North Gate")
                 .severity(IncidentSeverity.MEDIUM)
                 .status(IncidentStatus.OPEN)
-                .timestamp(LocalDateTime.now().minusHours(1))
+                .createdAt(LocalDateTime.now().minusHours(1))
                 .build());
 
         incidentRepository.save(Incident.builder()
@@ -103,7 +112,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .location("East Wing")
                 .severity(IncidentSeverity.LOW)
                 .status(IncidentStatus.RESOLVED)
-                .timestamp(LocalDateTime.now().minusHours(2))
+                .createdAt(LocalDateTime.now().minusHours(2))
                 .build());
 
         incidentRepository.save(Incident.builder()
@@ -112,7 +121,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .location("Main Square")
                 .severity(IncidentSeverity.HIGH)
                 .status(IncidentStatus.OPEN)
-                .timestamp(LocalDateTime.now().minusMinutes(15))
+                .createdAt(LocalDateTime.now().minusMinutes(15))
                 .build());
 
         incidentRepository.save(Incident.builder()
@@ -121,7 +130,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .location("Main Square")
                 .severity(IncidentSeverity.HIGH)
                 .status(IncidentStatus.OPEN)
-                .timestamp(LocalDateTime.now().minusMinutes(5))
+                .createdAt(LocalDateTime.now().minusMinutes(5))
                 .build());
 
         incidentRepository.save(Incident.builder()
@@ -130,17 +139,17 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .location("North Gate")
                 .severity(IncidentSeverity.LOW)
                 .status(IncidentStatus.RESOLVED)
-                .timestamp(LocalDateTime.now().minusHours(5))
+                .createdAt(LocalDateTime.now().minusHours(5))
                 .build());
 
         // 4. Seed Alerts
         for (int i = 1; i <= 10; i++) {
             alertRepository.save(Alert.builder()
                     .type(i % 3 == 0 ? "FIRE_DETECTED" : "OVERCROWDING")
-                    .source(i % 2 == 0 ? "Main Square" : "North Gate")
-                    .description("Auto-generated alert " + i)
+                    .location(i % 2 == 0 ? "Main Square" : "North Gate")
+                    .message("Auto-generated alert " + i)
                     .severity(i % 3 == 0 ? AlertSeverity.CRITICAL : AlertSeverity.HIGH)
-                    .timestamp(LocalDateTime.now().minusMinutes(i * 10L))
+                    .createdAt(LocalDateTime.now().minusMinutes(i * 10L))
                     .isRead(i % 2 == 0)
                     .build());
         }

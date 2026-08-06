@@ -27,4 +27,10 @@ public class Camera {
     private CameraStatus status;
 
     private LocalDateTime lastSeen;
+
+    private Double healthPercentage;
+    
+    private String resolution;
+    
+    private Integer fps;
 }

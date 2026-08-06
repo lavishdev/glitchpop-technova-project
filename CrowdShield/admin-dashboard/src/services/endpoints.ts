@@ -12,7 +12,7 @@ export const API_ENDPOINTS = {
   // Dashboard & Metrics
   DASHBOARD_STATS: '/dashboard/stats',
   DASHBOARD_ZONES: '/dashboard/zones',
-  DASHBOARD_ALERTS_RECENT: '/dashboard/alerts/recent',
+  DASHBOARD_RECENT_ACTIVITY: '/dashboard/recent-activity',
   DASHBOARD_INCIDENTS_ACTIVE: '/dashboard/incidents/active',
   DASHBOARD_CAMERAS_ACTIVE: '/dashboard/cameras/active',
 
@@ -47,4 +47,10 @@ export const API_ENDPOINTS = {
 
   // Audit Logging
   AUDIT_LOGS: '/audit-logs',
+  
+  // Settings
+  SETTINGS: '/settings',
+  
+  // System
+  SYSTEM_HEALTH: '/system/health',
 } as const;

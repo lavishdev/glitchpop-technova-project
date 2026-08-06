@@ -3,6 +3,8 @@ package com.crowdshield.dashboard;
 import com.crowdshield.alert.dto.AlertDto;
 import com.crowdshield.common.ApiResponse;
 import com.crowdshield.incident.dto.IncidentDto;
+import com.crowdshield.activity.dto.ActivityLogDto;
+import com.crowdshield.dashboard.dto.ZoneAnalyticsDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,5 +37,15 @@ public class DashboardController {
     @GetMapping("/recent-incidents")
     public ResponseEntity<ApiResponse<List<IncidentDto>>> getRecentIncidents() {
         return ResponseEntity.ok(ApiResponse.success(dashboardService.getRecentIncidents()));
+    }
+
+    @GetMapping("/recent-activity")
+    public ResponseEntity<ApiResponse<List<ActivityLogDto>>> getRecentActivity() {
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getRecentActivity()));
+    }
+
+    @GetMapping("/zones")
+    public ResponseEntity<ApiResponse<List<ZoneAnalyticsDto>>> getZoneAnalytics() {
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getZoneAnalytics()));
     }
 }
