@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/Input";
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [email, setEmail] = useState("a.mercer@crowdshield.internal");
+  const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("••••••••••••");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await authService.login({ email, password });
+      const response = await authService.login({ username, password });
       login(response.token);
     } catch (err: any) {
       setError(err.response?.data?.message || "Invalid credentials or server error");
@@ -59,12 +59,12 @@ export default function LoginPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Security Clearance Email"
-            type="email"
-            placeholder="operator@crowdshield.internal"
-            icon="mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            label="Operator Username"
+            type="text"
+            placeholder="operator_id"
+            icon="person"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
           <Input
