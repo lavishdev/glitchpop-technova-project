@@ -12,10 +12,7 @@ export const API_ENDPOINTS = {
   DASHBOARD_ZONES: '/dashboard/zones',
   DASHBOARD_RECENT_ACTIVITY: '/dashboard/recent-activity',
 
-  // Crowd Analytics
-  ANALYTICS_HEATMAP: '/analytics/heatmap',
-  ANALYTICS_TRENDS: '/analytics/trends',
-  ANALYTICS_PREDICTIONS: '/analytics/predictions',
+  // Crowd Analytics (Handled via Dashboard / Recent Activity)
 
   // Alerts & Threat Detection
   ALERTS: '/alerts',
