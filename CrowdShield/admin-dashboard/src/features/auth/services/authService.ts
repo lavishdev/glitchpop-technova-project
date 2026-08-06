@@ -8,4 +8,7 @@ export const authService = {
     // The backend returns an ApiResponse<AuthResponse> so the data payload is response.data.data
     return response.data.data;
   },
+  register: async (credentials: AuthRequest): Promise<void> => {
+    await axiosClient.post(API_ENDPOINTS.AUTH_REGISTER, credentials);
+  },
 };

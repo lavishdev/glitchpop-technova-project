@@ -6,6 +6,7 @@
 export const API_ENDPOINTS = {
   // Authentication
   AUTH_LOGIN: '/auth/login',
+  AUTH_REGISTER: '/auth/register',
 
   // Dashboard & Metrics
   DASHBOARD_ZONES: '/dashboard/zones',
