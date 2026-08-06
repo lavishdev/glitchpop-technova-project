@@ -20,12 +20,10 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // In a real scenario you would pass password, here just use a dummy token if authService fails
       const response = await authService.login({ email, password });
-      login(response.token || "dummy-token-for-ui");
-    } catch (err) {
-      // Fallback for UI if backend is not actually running
-      login("fallback-jwt-token-12345");
+      login(response.token);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Invalid credentials or server error");
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +65,6 @@ export default function LoginPage() {
             icon="mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-slate-950/80 border-slate-800 text-white"
             required
           />
           <Input
@@ -77,7 +74,6 @@ export default function LoginPage() {
             icon="lock"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="bg-slate-950/80 border-slate-800 text-white"
             required
           />
 
