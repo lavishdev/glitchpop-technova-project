@@ -24,6 +24,12 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userService.getAllUsers(pageable)));
     }
 
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserDto>> createUser(@Valid @RequestBody com.crowdshield.user.dto.UserCreateDto dto) {
+        return ResponseEntity.ok(ApiResponse.success(userService.createUser(dto), "User created successfully"));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable Long id) {

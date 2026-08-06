@@ -1,8 +1,18 @@
+import axiosClient from '@/services/api/axiosClient';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import { EmergencyProtocol } from '../types';
-import { MOCK_EMERGENCY_PROTOCOLS } from '../mock';
 
 export const emergencyService = {
   getEmergencyProtocols: async (): Promise<EmergencyProtocol[]> => {
-    return Promise.resolve(MOCK_EMERGENCY_PROTOCOLS);
+    const response = await axiosClient.get(API_ENDPOINTS.EMERGENCY_PROTOCOLS);
+    return response.data.data;
+  },
+  triggerProtocol: async (protocolId: string): Promise<void> => {
+    await axiosClient.post(API_ENDPOINTS.EMERGENCY_TRIGGER, {
+      responseType: protocolId,
+      location: 'GLOBAL',
+      priority: 'CRITICAL',
+      dispatchedBy: 'system'
+    });
   }
 };

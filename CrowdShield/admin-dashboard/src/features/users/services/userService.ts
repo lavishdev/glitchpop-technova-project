@@ -11,5 +11,10 @@ export const userService = {
   getUserById: async (id: number): Promise<UserAccount> => {
     const response = await axiosClient.get(`${API_ENDPOINTS.USERS}/${id}`);
     return response.data.data;
+  },
+
+  createUser: async (userData: { username: string; password?: string; role: string }): Promise<UserAccount> => {
+    const response = await axiosClient.post(API_ENDPOINTS.USERS, userData);
+    return response.data.data;
   }
 };

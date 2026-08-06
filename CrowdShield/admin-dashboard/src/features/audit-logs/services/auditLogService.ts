@@ -1,8 +1,10 @@
+import axiosClient from '@/services/api/axiosClient';
+import { API_ENDPOINTS } from '@/services/endpoints';
 import { AuditLogItem } from '../types';
-import { MOCK_AUDIT_LOGS } from '../mock';
 
 export const auditLogService = {
   getAuditLogs: async (): Promise<AuditLogItem[]> => {
-    return Promise.resolve(MOCK_AUDIT_LOGS);
+    const response = await axiosClient.get(API_ENDPOINTS.AUDIT_LOGS);
+    return response.data.data.content; // It returns a paginated Page<ActivityLogDto>
   }
 };

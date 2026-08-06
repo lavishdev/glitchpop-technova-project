@@ -13,9 +13,31 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final com.crowdshield.activity.ActivityLogService activityLogService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public Page<UserDto> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(this::toDto);
+    }
+
+    public UserDto createUser(com.crowdshield.user.dto.UserCreateDto dto) {
+        if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("Username already exists");
+        }
+        
+        String newRole = dto.getRole().toUpperCase();
+        if (!newRole.startsWith("ROLE_")) {
+            newRole = "ROLE_" + newRole;
+        }
+
+        User user = User.builder()
+                .username(dto.getUsername())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .role(newRole)
+                .build();
+                
+        User saved = userRepository.save(user);
+        activityLogService.logActivity(getUsername(), com.crowdshield.activity.ActivityAction.REGISTER, "Created new user " + saved.getUsername() + " with role " + newRole);
+        return toDto(saved);
     }
 
     public UserDto getUserById(Long id) {

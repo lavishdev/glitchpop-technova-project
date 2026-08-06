@@ -18,24 +18,27 @@ export default function UserManagementPage() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<UserAccount["role"]>("USER");
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) return;
 
-    const newUser: UserAccount = {
-      id: Math.floor(100 + Math.random() * 900),
-      username: name,
-      email,
-      role,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const newUser = await userService.createUser({
+        username: name,
+        password: "defaultPassword123", // A real app would send a secure random password or an email link
+        role
+      });
 
-    queryClient.setQueryData<UserAccount[]>(["users"], (old) => {
-      return old ? [newUser, ...old] : [newUser];
-    });
-    setIsAddModalOpen(false);
-    setName("");
-    setEmail("");
+      queryClient.setQueryData<UserAccount[]>(["users"], (old) => {
+        return old ? [newUser, ...old] : [newUser];
+      });
+      setIsAddModalOpen(false);
+      setName("");
+      setEmail("");
+    } catch (error) {
+      console.error("Failed to create user", error);
+      alert("Failed to create user. Ensure you have Admin privileges.");
+    }
   };
 
   return (

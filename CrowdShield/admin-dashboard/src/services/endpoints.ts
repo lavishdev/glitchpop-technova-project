@@ -33,10 +33,11 @@ export const API_ENDPOINTS = {
 
   // Emergency Response
   EMERGENCY_EVENTS: '/emergency',
-  EMERGENCY_TRIGGER: '/emergency/trigger',
+  EMERGENCY_TRIGGER: '/emergency/respond',
+  EMERGENCY_PROTOCOLS: '/emergency/protocols',
 
   // Audit Logging
-  AUDIT_LOGS: '/audit-logs',
+  AUDIT_LOGS: '/logs',
   
   // Settings
   SETTINGS: '/settings',

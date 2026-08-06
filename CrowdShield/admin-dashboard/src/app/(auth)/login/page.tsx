@@ -14,22 +14,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("••••••••••••");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isRegistering, setIsRegistering] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      if (isRegistering) {
-        await authService.register({ username, password });
-        // After successful registration, log them in automatically
-        const response = await authService.login({ username, password });
-        login(response.token);
-      } else {
-        const response = await authService.login({ username, password });
-        login(response.token);
-      }
+      const response = await authService.login({ username, password });
+      login(response.token);
     } catch (err: any) {
       setError(err.response?.data?.message || "Invalid credentials or server error");
     } finally {
@@ -94,16 +86,8 @@ export default function LoginPage() {
               />
               Remember Hardware Token
             </label>
-            <a 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault();
-                setIsRegistering(!isRegistering);
-                setError(null);
-              }}
-              className="text-blue-400 hover:underline"
-            >
-              {isRegistering ? "Back to Login" : "Register New Account"}
+            <a href="#" className="text-blue-400 hover:underline">
+              Reset Security Token
             </a>
           </div>
 
@@ -115,7 +99,7 @@ export default function LoginPage() {
             isLoading={isLoading}
             icon="login"
           >
-            {isRegistering ? "Register Credentials" : "Authenticate Credentials"}
+            Authenticate Credentials
           </Button>
         </form>
 
