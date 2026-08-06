@@ -5,6 +5,8 @@ from models.schemas import (
     UploadErrorResponse,
     UploadInfo,
     FrameExtractionMetadata,
+    PerFrameCount,
+    PersonDetectionMetadata,
     VideoUploadResponse,
 )
 
@@ -15,5 +17,7 @@ __all__ = [
     "UploadErrorResponse",
     "UploadInfo",
     "FrameExtractionMetadata",
+    "PerFrameCount",
+    "PersonDetectionMetadata",
     "VideoUploadResponse",
 ]

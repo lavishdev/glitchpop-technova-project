@@ -5,12 +5,14 @@ from models.schemas import (
     ErrorResponse,
     FrameExtractionMetadata,
     HealthResponse,
+    PersonDetectionMetadata,
     RootResponse,
     UploadErrorResponse,
     UploadInfo,
     VideoUploadResponse,
 )
 from tracking.frame_extractor import FrameExtractor
+from tracking.person_detector import PersonDetector
 from utils.file_utils import is_allowed_video_extension, save_upload_file
 from utils.logger import logger
 
@@ -52,14 +54,14 @@ async def get_health() -> HealthResponse:
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": ErrorResponse,
-            "description": "Unexpected internal server error or frame extraction failure"
+            "description": "Unexpected internal server error, frame extraction, or detection failure"
         }
     },
     status_code=status.HTTP_200_OK,
-    summary="Upload Video File and Extract Frames"
+    summary="Upload Video, Extract Frames, and Detect Persons"
 )
 async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
-    """Accept, validate, and save an uploaded video file, then extract all frames immediately."""
+    """Accept, validate, and save an uploaded video file, extract frames, and run YOLOv11 person detection."""
     if not file.filename or not is_allowed_video_extension(file.filename):
         logger.warning(f"Rejected video upload with unsupported extension: '{file.filename}'")
         raise HTTPException(
@@ -94,6 +96,23 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Video uploaded successfully, but frame extraction failed."
         )
 
+    try:
+        detector = PersonDetector()
+        detection_result = detector.process_frames_directory(
+            frames_dir=extraction_result["frames_directory"]
+        )
+        logger.info(
+            f"Person detection complete for '{saved_path.name}': "
+            f"{detection_result['total_person_detections']} person detections across "
+            f"{detection_result['frames_with_persons']}/{detection_result['total_frames_processed']} frames"
+        )
+    except Exception as exc:
+        logger.error(f"Person detection failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Video uploaded and frames extracted successfully, but person detection failed."
+        )
+
     return VideoUploadResponse(
         message="Video uploaded and processed successfully",
         upload=UploadInfo(
@@ -101,5 +120,6 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             content_type=file.content_type or "application/octet-stream",
             file_size=file_size
         ),
-        frame_extraction=FrameExtractionMetadata(**extraction_result)
+        frame_extraction=FrameExtractionMetadata(**extraction_result),
+        person_detection=PersonDetectionMetadata(**detection_result)
     )

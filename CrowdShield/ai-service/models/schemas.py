@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel, Field
 
 
@@ -34,6 +35,19 @@ class FrameExtractionMetadata(BaseModel):
     extracted_frames: int = Field(..., examples=[300])
 
 
+class PerFrameCount(BaseModel):
+    frame: str = Field(..., examples=["frame_000001.jpg"])
+    count: int = Field(..., examples=[3])
+
+
+class PersonDetectionMetadata(BaseModel):
+    total_frames_processed: int = Field(..., examples=[300])
+    frames_with_persons: int = Field(..., examples=[250])
+    total_person_detections: int = Field(..., examples=[1250])
+    per_frame_counts: List[PerFrameCount]
+    detections_directory: str = Field(..., examples=["C:\\path\\to\\outputs\\detections\\550e8400-e29b-41d4-a716-446655440000"])
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -41,3 +55,4 @@ class VideoUploadResponse(BaseModel):
     )
     upload: UploadInfo
     frame_extraction: FrameExtractionMetadata
+    person_detection: PersonDetectionMetadata
