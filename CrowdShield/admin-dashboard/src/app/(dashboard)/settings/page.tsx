@@ -4,15 +4,15 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { apiClient } from "@/services/apiClient";
-import { SystemConfigSettings } from "@/types/domain";
+import { settingsService } from "@/features/settings/services/settingsService";
+import { SystemConfigSettings } from "@/features/settings/types";
 
 export default function SettingsPage() {
   const [config, setConfig] = useState<SystemConfigSettings | null>(null);
   const [savedMsg, setSavedMsg] = useState(false);
 
   useEffect(() => {
-    apiClient.getSystemConfig().then(setConfig);
+    settingsService.getSystemConfig().then(setConfig);
   }, []);
 
   const handleSave = (e: React.FormEvent) => {

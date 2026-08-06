@@ -6,19 +6,17 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
-import { apiClient } from "@/services/apiClient";
-import { UserAccount } from "@/types/domain";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { userService } from "@/features/users/services/userService";
+import { UserAccount } from "@/features/users/types";
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<UserAccount[]>([]);
+  const queryClient = useQueryClient();
+  const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: userService.getUsers });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<UserAccount["role"]>("Security Officer");
-
-  useEffect(() => {
-    apiClient.getUsers().then(setUsers);
-  }, []);
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +32,9 @@ export default function UserManagementPage() {
       lastActive: "Just now",
     };
 
-    setUsers((prev) => [newUser, ...prev]);
+    queryClient.setQueryData<UserAccount[]>(["users"], (old) => {
+      return old ? [newUser, ...old] : [newUser];
+    });
     setIsAddModalOpen(false);
     setName("");
     setEmail("");

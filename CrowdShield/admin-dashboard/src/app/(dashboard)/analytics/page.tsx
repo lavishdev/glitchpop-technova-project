@@ -4,15 +4,15 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { apiClient } from "@/services/apiClient";
-import { ZoneAnalytics } from "@/types/domain";
+import { dashboardService } from "@/features/dashboard/services/dashboardService";
+import { ZoneAnalytics } from "@/features/dashboard/types";
 
 export default function CrowdAnalyticsPage() {
   const [zones, setZones] = useState<ZoneAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiClient.getZoneAnalytics().then((data) => {
+    dashboardService.getZoneAnalytics().then((data) => {
       setZones(data);
       setLoading(false);
     });

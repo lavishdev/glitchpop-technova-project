@@ -1,0 +1,47 @@
+import { AlertItem } from '../types';
+
+export const MOCK_ALERTS: AlertItem[] = [
+  {
+    id: "ALT-9042",
+    title: "High Crowd Surge Detected",
+    description: "Density surpassed 92% safe threshold near Turnstile 4.",
+    location: "North Concourse - Turnstile 4",
+    timestamp: "10 mins ago",
+    severity: "critical",
+    status: "active",
+    cameraId: "CAM-014",
+    assignedOfficer: "Capt. Marcus Vance",
+  },
+  {
+    id: "ALT-9041",
+    title: "Unattended Baggage Alert",
+    description: "Object stationary for >15 minutes identified by AI Vision.",
+    location: "East Promenade - Bench 12",
+    timestamp: "24 mins ago",
+    severity: "high",
+    status: "active",
+    cameraId: "CAM-088",
+    assignedOfficer: "Officer Sarah Chen",
+  },
+  {
+    id: "ALT-9040",
+    title: "Perimeter Barrier Tamper",
+    description: "Optical sensor movement detected on Gate 7 outer fence.",
+    location: "South Perimeter Gate 7",
+    timestamp: "45 mins ago",
+    severity: "medium",
+    status: "acknowledged",
+    cameraId: "CAM-120",
+    assignedOfficer: "Sgt. David Miller",
+  },
+  {
+    id: "ALT-9039",
+    title: "Camera Feeds Interrupted",
+    description: "Transient network latency on Fiber Loop B.",
+    location: "West Parking Garage Level 3",
+    timestamp: "1 hour ago",
+    severity: "low",
+    status: "resolved",
+    cameraId: "CAM-204",
+  },
+];

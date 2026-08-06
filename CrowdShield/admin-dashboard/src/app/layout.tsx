@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import QueryProvider from "@/providers/QueryProvider";
+import { AuthProvider } from "@/providers/AuthProvider";
+import WebSocketProvider from "@/providers/WebSocketProvider";
 
 export const metadata: Metadata = {
   title: "CrowdShield Enterprise Admin Dashboard",
@@ -21,7 +24,13 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased bg-background text-on-surface">
-        {children}
+        <QueryProvider>
+          <AuthProvider>
+            <WebSocketProvider>
+              {children}
+            </WebSocketProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

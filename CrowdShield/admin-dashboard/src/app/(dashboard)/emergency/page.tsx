@@ -5,8 +5,8 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { apiClient } from "@/services/apiClient";
-import { EmergencyProtocol } from "@/types/domain";
+import { emergencyService } from "@/features/emergency/services/emergencyService";
+import { EmergencyProtocol } from "@/features/emergency/types";
 
 export default function EmergencyResponsePage() {
   const [protocols, setProtocols] = useState<EmergencyProtocol[]>([]);
@@ -14,7 +14,7 @@ export default function EmergencyResponsePage() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   useEffect(() => {
-    apiClient.getEmergencyProtocols().then((data) => {
+    emergencyService.getEmergencyProtocols().then((data) => {
       setProtocols(data);
       if (data.length > 0) setActiveProtocol(data[0]);
     });

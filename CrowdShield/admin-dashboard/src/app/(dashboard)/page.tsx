@@ -2,42 +2,24 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { StatCard } from "@/components/shared/StatCard";
+import { StatCard } from "@/components/cards/StatCard";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
-import { apiClient } from "@/services/apiClient";
-import { AlertItem, CameraStream, StatMetric, ZoneAnalytics } from "@/types/domain";
+import { SkeletonLoader } from "@/components/data/SkeletonLoader";
+import { useQuery } from "@tanstack/react-query";
+import { dashboardService } from "@/features/dashboard/services/dashboardService";
+import { StatMetric, ZoneAnalytics } from "@/features/dashboard/types";
+import { AlertItem } from "@/features/alerts/types";
+import { CameraStream } from "@/features/cameras/types";
 
 export default function DashboardOverviewPage() {
-  const [metrics, setMetrics] = useState<StatMetric[]>([]);
-  const [zones, setZones] = useState<ZoneAnalytics[]>([]);
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [cameras, setCameras] = useState<CameraStream[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: metrics = [], isLoading: loadingMetrics } = useQuery({ queryKey: ['stats'], queryFn: dashboardService.getStats });
+  const { data: zones = [], isLoading: loadingZones } = useQuery({ queryKey: ['zoneAnalytics'], queryFn: dashboardService.getZoneAnalytics });
+  const { data: alerts = [], isLoading: loadingAlerts } = useQuery({ queryKey: ['recentAlerts'], queryFn: dashboardService.getRecentAlerts });
+  const { data: cameras = [], isLoading: loadingCameras } = useQuery({ queryKey: ['cameras'], queryFn: dashboardService.getCameraFeeds });
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [m, z, a, c] = await Promise.all([
-          apiClient.getOverviewMetrics(),
-          apiClient.getZoneAnalytics(),
-          apiClient.getAlerts(),
-          apiClient.getCameras(),
-        ]);
-        setMetrics(m);
-        setZones(z);
-        setAlerts(a);
-        setCameras(c);
-      } catch (err) {
-        console.error("Failed to load dashboard overview data", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  const loading = loadingMetrics || loadingZones || loadingAlerts || loadingCameras;
 
   if (loading) {
     return (
@@ -92,7 +74,15 @@ export default function DashboardOverviewPage() {
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric) => (
-          <StatCard key={metric.title} metric={metric} />
+          <StatCard 
+            key={metric.title} 
+            title={metric.title}
+            value={metric.value}
+            icon={metric.icon}
+            change={metric.change}
+            isPositive={metric.isPositive}
+            description={metric.description}
+          />
         ))}
       </div>
 

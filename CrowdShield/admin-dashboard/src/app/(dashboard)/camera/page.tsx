@@ -6,19 +6,17 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
-import { apiClient } from "@/services/apiClient";
-import { CameraStream } from "@/types/domain";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { cameraService } from "@/features/cameras/services/cameraService";
+import { CameraStream } from "@/features/cameras/types";
 
 export default function CameraInfrastructurePage() {
-  const [cameras, setCameras] = useState<CameraStream[]>([]);
+  const queryClient = useQueryClient();
+  const { data: cameras = [] } = useQuery({ queryKey: ["cameras"], queryFn: cameraService.getCameras });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newCamName, setNewCamName] = useState("");
   const [newCamZone, setNewCamZone] = useState("");
   const [newCamIp, setNewCamIp] = useState("");
-
-  useEffect(() => {
-    apiClient.getCameras().then(setCameras);
-  }, []);
 
   const handleAddCamera = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +36,9 @@ export default function CameraInfrastructurePage() {
       type: "Optical PTZ",
     };
 
-    setCameras((prev) => [newCam, ...prev]);
+    queryClient.setQueryData<CameraStream[]>(["cameras"], (old) => {
+      return old ? [newCam, ...old] : [newCam];
+    });
     setIsAddModalOpen(false);
     setNewCamName("");
     setNewCamZone("");

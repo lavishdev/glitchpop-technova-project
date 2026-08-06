@@ -6,38 +6,31 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { apiClient } from "@/services/apiClient";
-import { IncidentRecord } from "@/types/domain";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { incidentService } from "@/features/incidents/services/incidentService";
+import { IncidentRecord } from "@/features/incidents/types";
 
 export default function IncidentManagementPage() {
-  const [incidents, setIncidents] = useState<IncidentRecord[]>([]);
-  const [selectedIncident, setSelectedIncident] = useState<IncidentRecord | null>(null);
+  const queryClient = useQueryClient();
+  const { data: incidents = [] } = useQuery({ queryKey: ["incidents"], queryFn: incidentService.getIncidents });
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  
+  const selectedIncident = incidents.find(inc => inc.id === selectedIncidentId) || (incidents.length > 0 && !selectedIncidentId ? incidents[0] : null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newNote, setNewNote] = useState("");
 
-  useEffect(() => {
-    apiClient.getIncidents().then((data) => {
-      setIncidents(data);
-      if (data.length > 0) setSelectedIncident(data[0]);
-    });
-  }, []);
+  const updateIncidentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<IncidentRecord> }) => incidentService.updateIncident(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
+    },
+  });
 
   const handleAddNote = () => {
     if (!newNote || !selectedIncident) return;
-    const updatedIncidents = incidents.map((inc) => {
-      if (inc.id === selectedIncident.id) {
-        return {
-          ...inc,
-          notes: [...inc.notes, newNote],
-        };
-      }
-      return inc;
-    });
-    setIncidents(updatedIncidents);
-    setSelectedIncident({
-      ...selectedIncident,
-      notes: [...selectedIncident.notes, newNote],
-    });
+    const updatedNotes = [...selectedIncident.notes, newNote];
+    updateIncidentMutation.mutate({ id: selectedIncident.id, data: { notes: updatedNotes } });
     setNewNote("");
   };
 
@@ -70,7 +63,7 @@ export default function IncidentManagementPage() {
           {incidents.map((inc) => (
             <div
               key={inc.id}
-              onClick={() => setSelectedIncident(inc)}
+              onClick={() => setSelectedIncidentId(inc.id)}
               className={`p-4 rounded-xl border transition-all cursor-pointer space-y-2 ${
                 selectedIncident?.id === inc.id
                   ? "bg-primary-fixed/20 border-primary shadow-sm"

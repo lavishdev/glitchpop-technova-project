@@ -5,15 +5,15 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { apiClient } from "@/services/apiClient";
-import { ZoneAnalytics } from "@/types/domain";
+import { dashboardService } from "@/features/dashboard/services/dashboardService";
+import { ZoneAnalytics } from "@/features/dashboard/types";
 
 export default function DashboardEnhancedPage() {
   const [zones, setZones] = useState<ZoneAnalytics[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>("ZONE-01");
 
   useEffect(() => {
-    apiClient.getZoneAnalytics().then(setZones);
+    dashboardService.getZoneAnalytics().then(setZones);
   }, []);
 
   const activeZone = zones.find((z) => z.zoneId === selectedZone) || zones[0];

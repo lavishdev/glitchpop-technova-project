@@ -4,14 +4,14 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { apiClient } from "@/services/apiClient";
-import { CameraStream } from "@/types/domain";
+import { cameraService } from "@/features/cameras/services/cameraService";
+import { CameraStream } from "@/features/cameras/types";
 
 export default function MissionControlPage() {
   const [cameras, setCameras] = useState<CameraStream[]>([]);
 
   useEffect(() => {
-    apiClient.getCameras().then(setCameras);
+    cameraService.getCameras().then(setCameras);
   }, []);
 
   return (

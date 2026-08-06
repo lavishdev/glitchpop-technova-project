@@ -5,15 +5,15 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { apiClient } from "@/services/apiClient";
-import { AuditLogItem } from "@/types/domain";
+import { auditLogService } from "@/features/audit-logs/services/auditLogService";
+import { AuditLogItem } from "@/features/audit-logs/types";
 
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    apiClient.getAuditLogs().then(setLogs);
+    auditLogService.getAuditLogs().then(setLogs);
   }, []);
 
   const filteredLogs = logs.filter(
