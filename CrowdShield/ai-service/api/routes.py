@@ -9,6 +9,7 @@ from models.schemas import (
     FrameExtractionMetadata,
     HealthResponse,
     HeatmapMetadata,
+    IncidentReportSchema,
     PersonDetectionMetadata,
     RiskAssessmentMetadataSchema,
     RootResponse,
@@ -18,6 +19,8 @@ from models.schemas import (
     VideoUploadResponse,
 )
 from recommendation.recommendation_engine import IntelligentRecommendationEngine
+from reporting.incident_report import IncidentReportGenerator
+from reporting.pdf_report import PDFReportGenerator
 from risk.alert_generator import AlertGenerator
 from risk.risk_assessor import UnifiedRiskAssessor
 from tracking.behaviour_detector import BehaviourDetector
@@ -74,7 +77,7 @@ async def get_health() -> HealthResponse:
     summary="Upload Video and Run Unified CrowdShield AI Report Pipeline"
 )
 async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
-    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, estimate crowd density, generate heatmaps, detect suspicious behavior, evaluate risk, generate recommendations, trigger alerts, and return a unified AI report."""
+    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, estimate crowd density, generate heatmaps, detect suspicious behavior, evaluate risk, generate recommendations, trigger alerts, and synthesize an incident report."""
     if not file.filename or not is_allowed_video_extension(file.filename):
         logger.warning(f"Rejected video upload with unsupported extension: '{file.filename}'")
         raise HTTPException(
@@ -242,16 +245,50 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Recommendation generation complete, but alert generation failed."
         )
 
+    upload_info_dict = {
+        "filename": saved_path.name,
+        "content_type": file.content_type or "application/octet-stream",
+        "file_size": file_size
+    }
+
+    try:
+        report_gen = IncidentReportGenerator()
+        report_result = report_gen.generate_report(
+            upload_info=upload_info_dict,
+            extraction_result=extraction_result,
+            detection_result=detection_result,
+            tracking_result=tracking_result,
+            density_result=density_result,
+            behaviour_result=behaviour_result,
+            risk_result=risk_result,
+            recommendation_result=recommendation_result,
+            alert_result=alert_result
+        )
+        logger.info(f"Incident report synthesis complete for '{saved_path.name}'")
+    except Exception as exc:
+        logger.error(f"Incident report synthesis failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Alert generation complete, but incident report synthesis failed."
+        )
+
+    pdf_path = None
+    try:
+        pdf_gen = PDFReportGenerator()
+        pdf_path = pdf_gen.generate_pdf(
+            incident_report=report_result,
+            upload_info=upload_info_dict
+        )
+    except Exception as exc:
+        logger.error(f"PDF generation failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        # Continue processing despite PDF generation failure as per requirements
+        
     heatmap_meta = HeatmapMetadata(**heatmap_result)
     raw_alerts = alert_result.get("alerts", [])
 
     return VideoUploadResponse(
         message="Video uploaded and processed successfully",
-        upload=UploadInfo(
-            filename=saved_path.name,
-            content_type=file.content_type or "application/octet-stream",
-            file_size=file_size
-        ),
+        upload=UploadInfo(**upload_info_dict),
         frame_extraction=FrameExtractionMetadata(**extraction_result),
         person_detection=PersonDetectionMetadata(**detection_result),
         tracking=TrackingMetadata(**tracking_result),
@@ -261,5 +298,16 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
         behaviour_analysis=BehaviourAnalysisMetadata(**behaviour_result),
         risk_assessment=RiskAssessmentMetadataSchema(**risk_result),
         recommendations=recommendation_result.get("recommendations", []),
-        alerts=[AlertItemSchema(**a) for a in raw_alerts]
+        alerts=[AlertItemSchema(**a) for a in raw_alerts],
+        incident_report=IncidentReportSchema(
+            summary=report_result.get("summary", ""),
+            overall_risk=report_result.get("overall_risk", "SAFE"),
+            risk_score=report_result.get("risk_score", 0.0),
+            frames_processed=report_result.get("frames_processed", 0),
+            people_detected=report_result.get("people_detected", 0),
+            highest_density=report_result.get("highest_density", "LOW"),
+            recommendations=report_result.get("recommendations", []),
+            alerts=[AlertItemSchema(**a) for a in report_result.get("alerts", [])]
+        ),
+        pdf_report=pdf_path
     )

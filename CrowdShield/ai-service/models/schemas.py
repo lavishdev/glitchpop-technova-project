@@ -112,6 +112,17 @@ class AlertItemSchema(BaseModel):
     risk_score: float = Field(..., examples=[0.94])
 
 
+class IncidentReportSchema(BaseModel):
+    summary: str = Field(..., examples=["AI Incident Analysis completed for video."])
+    overall_risk: str = Field(..., examples=["HIGH"])
+    risk_score: float = Field(..., examples=[0.81])
+    frames_processed: int = Field(..., examples=[300])
+    people_detected: int = Field(..., examples=[1250])
+    highest_density: str = Field(..., examples=["HIGH"])
+    recommendations: List[str] = Field(..., examples=[["Restrict entry into high-density zone."]])
+    alerts: List[AlertItemSchema]
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -131,3 +142,5 @@ class VideoUploadResponse(BaseModel):
         examples=[["Restrict entry into high-density zone.", "Notify control room operators immediately."]]
     )
     alerts: List[AlertItemSchema]
+    incident_report: IncidentReportSchema
+    pdf_report: str = Field(..., examples=["outputs/reports/550e8400-e29b-41d4-a716-446655440000_report.pdf"])

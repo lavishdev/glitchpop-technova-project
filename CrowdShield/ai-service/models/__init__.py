@@ -16,6 +16,7 @@ from models.schemas import (
     BehaviourAnalysisMetadata,
     RiskAssessmentMetadataSchema,
     AlertItemSchema,
+    IncidentReportSchema,
     VideoUploadResponse,
 )
 
@@ -37,5 +38,6 @@ __all__ = [
     "BehaviourAnalysisMetadata",
     "RiskAssessmentMetadataSchema",
     "AlertItemSchema",
+    "IncidentReportSchema",
     "VideoUploadResponse",
 ]
