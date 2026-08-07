@@ -6,6 +6,7 @@ from models.schemas import (
     ErrorResponse,
     FrameExtractionMetadata,
     HealthResponse,
+    HeatmapMetadata,
     PersonDetectionMetadata,
     RootResponse,
     TrackingMetadata,
@@ -15,6 +16,7 @@ from models.schemas import (
 )
 from tracking.crowd_density import CrowdDensityEstimator
 from tracking.frame_extractor import FrameExtractor
+from tracking.heatmap_generator import HeatmapGenerator
 from tracking.multi_object_tracker import MultiObjectTracker
 from tracking.person_detector import PersonDetector
 from utils.file_utils import is_allowed_video_extension, save_upload_file
@@ -58,14 +60,14 @@ async def get_health() -> HealthResponse:
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": ErrorResponse,
-            "description": "Unexpected internal server error, extraction, detection, tracking, or density failure"
+            "description": "Unexpected internal server error, extraction, detection, tracking, density, or heatmap failure"
         }
     },
     status_code=status.HTTP_200_OK,
     summary="Upload Video and Run Full AI Analytics Pipeline"
 )
 async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
-    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, and estimate crowd density."""
+    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, estimate crowd density, and generate heatmaps."""
     if not file.filename or not is_allowed_video_extension(file.filename):
         logger.warning(f"Rejected video upload with unsupported extension: '{file.filename}'")
         raise HTTPException(
@@ -148,6 +150,23 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Tracking complete, but crowd density estimation failed."
         )
 
+    try:
+        heatmap_gen = HeatmapGenerator()
+        heatmap_result = heatmap_gen.generate_heatmaps_from_tracks(
+            frames_dir=extraction_result["frames_directory"],
+            tracking_result=tracking_result
+        )
+        logger.info(
+            f"Crowd heatmap generation complete for '{saved_path.name}': "
+            f"{heatmap_result['generated_frames']} heatmap frames generated"
+        )
+    except Exception as exc:
+        logger.error(f"Crowd heatmap generation failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Crowd density complete, but heatmap generation failed."
+        )
+
     return VideoUploadResponse(
         message="Video uploaded and processed successfully",
         upload=UploadInfo(
@@ -158,5 +177,6 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
         frame_extraction=FrameExtractionMetadata(**extraction_result),
         person_detection=PersonDetectionMetadata(**detection_result),
         tracking=TrackingMetadata(**tracking_result),
-        crowd_density=CrowdDensityMetadata(**density_result)
+        crowd_density=CrowdDensityMetadata(**density_result),
+        heatmap=HeatmapMetadata(**heatmap_result)
     )

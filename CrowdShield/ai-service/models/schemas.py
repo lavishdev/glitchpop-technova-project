@@ -76,6 +76,12 @@ class CrowdDensityMetadata(BaseModel):
     frames: List[FrameDensityInfoSchema]
 
 
+class HeatmapMetadata(BaseModel):
+    generated_frames: int = Field(..., examples=[341])
+    heatmaps_directory: str = Field(..., examples=["C:\\path\\to\\outputs\\heatmaps\\550e8400-e29b-41d4-a716-446655440000"])
+    generated_files: List[str] = Field(..., examples=[["heatmap_000001.jpg", "heatmap_000002.jpg"]])
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -86,3 +92,4 @@ class VideoUploadResponse(BaseModel):
     person_detection: PersonDetectionMetadata
     tracking: TrackingMetadata
     crowd_density: CrowdDensityMetadata
+    heatmap: HeatmapMetadata
