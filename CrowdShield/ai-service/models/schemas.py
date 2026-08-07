@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -98,6 +98,20 @@ class BehaviourAnalysisMetadata(BaseModel):
     frames: List[FrameBehaviourInfoSchema]
 
 
+class RiskAssessmentMetadataSchema(BaseModel):
+    overall_risk: str = Field(..., examples=["HIGH"])
+    risk_score: float = Field(..., examples=[0.83])
+    risk_factors: List[str] = Field(..., examples=[["Peak crowd density reached HIGH level", "Detected suspicious movement events"]])
+
+
+class AlertItemSchema(BaseModel):
+    title: str = Field(..., examples=["Crowd Surge Detected"])
+    message: str = Field(..., examples=["Immediate intervention required."])
+    severity: str = Field(..., examples=["CRITICAL"])
+    timestamp: str = Field(..., examples=["2026-08-07T14:02:15Z"])
+    risk_score: float = Field(..., examples=[0.94])
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -108,5 +122,12 @@ class VideoUploadResponse(BaseModel):
     person_detection: PersonDetectionMetadata
     tracking: TrackingMetadata
     crowd_density: CrowdDensityMetadata
-    heatmap: HeatmapMetadata
+    heatmaps: HeatmapMetadata
+    heatmap: Optional[HeatmapMetadata] = None
     behaviour_analysis: BehaviourAnalysisMetadata
+    risk_assessment: RiskAssessmentMetadataSchema
+    recommendations: List[str] = Field(
+        ...,
+        examples=[["Restrict entry into high-density zone.", "Notify control room operators immediately."]]
+    )
+    alerts: List[AlertItemSchema]

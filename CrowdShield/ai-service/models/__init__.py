@@ -14,6 +14,8 @@ from models.schemas import (
     HeatmapMetadata,
     FrameBehaviourInfoSchema,
     BehaviourAnalysisMetadata,
+    RiskAssessmentMetadataSchema,
+    AlertItemSchema,
     VideoUploadResponse,
 )
 
@@ -33,5 +35,7 @@ __all__ = [
     "HeatmapMetadata",
     "FrameBehaviourInfoSchema",
     "BehaviourAnalysisMetadata",
+    "RiskAssessmentMetadataSchema",
+    "AlertItemSchema",
     "VideoUploadResponse",
 ]

@@ -2,6 +2,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from config.settings import settings
 from models.schemas import (
+    AlertItemSchema,
     BehaviourAnalysisMetadata,
     CrowdDensityMetadata,
     ErrorResponse,
@@ -9,12 +10,16 @@ from models.schemas import (
     HealthResponse,
     HeatmapMetadata,
     PersonDetectionMetadata,
+    RiskAssessmentMetadataSchema,
     RootResponse,
     TrackingMetadata,
     UploadErrorResponse,
     UploadInfo,
     VideoUploadResponse,
 )
+from recommendation.recommendation_engine import IntelligentRecommendationEngine
+from risk.alert_generator import AlertGenerator
+from risk.risk_assessor import UnifiedRiskAssessor
 from tracking.behaviour_detector import BehaviourDetector
 from tracking.crowd_density import CrowdDensityEstimator
 from tracking.frame_extractor import FrameExtractor
@@ -66,10 +71,10 @@ async def get_health() -> HealthResponse:
         }
     },
     status_code=status.HTTP_200_OK,
-    summary="Upload Video and Run Full AI Analytics Pipeline"
+    summary="Upload Video and Run Unified CrowdShield AI Report Pipeline"
 )
 async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
-    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, estimate crowd density, generate heatmaps, and detect suspicious behavior."""
+    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, estimate crowd density, generate heatmaps, detect suspicious behavior, evaluate risk, generate recommendations, trigger alerts, and return a unified AI report."""
     if not file.filename or not is_allowed_video_extension(file.filename):
         logger.warning(f"Rejected video upload with unsupported extension: '{file.filename}'")
         raise HTTPException(
@@ -186,6 +191,60 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Heatmap generation complete, but suspicious behaviour detection failed."
         )
 
+    try:
+        risk_assessor = UnifiedRiskAssessor()
+        risk_result = risk_assessor.evaluate_risk(
+            detection_result=detection_result,
+            tracking_result=tracking_result,
+            density_result=density_result,
+            behaviour_result=behaviour_result
+        )
+        logger.info(
+            f"Unified risk assessment complete for '{saved_path.name}': "
+            f"overall risk='{risk_result['overall_risk']}', score={risk_result['risk_score']}"
+        )
+    except Exception as exc:
+        logger.error(f"Unified risk assessment failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Behaviour detection complete, but unified risk assessment failed."
+        )
+
+    try:
+        rec_engine = IntelligentRecommendationEngine()
+        recommendation_result = rec_engine.generate_recommendations(risk_assessment_result=risk_result)
+        logger.info(
+            f"Intelligent recommendations generated for '{saved_path.name}': "
+            f"{len(recommendation_result['recommendations'])} recommendation(s)"
+        )
+    except Exception as exc:
+        logger.error(f"Recommendation generation failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Risk assessment complete, but recommendation generation failed."
+        )
+
+    try:
+        alert_gen = AlertGenerator()
+        alert_result = alert_gen.generate_alerts(
+            risk_assessment=risk_result,
+            recommendations=recommendation_result,
+            behaviour_analysis=behaviour_result
+        )
+        logger.info(
+            f"Alert generation complete for '{saved_path.name}': "
+            f"{alert_result['total_alerts']} alert(s) generated"
+        )
+    except Exception as exc:
+        logger.error(f"Alert generation failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Recommendation generation complete, but alert generation failed."
+        )
+
+    heatmap_meta = HeatmapMetadata(**heatmap_result)
+    raw_alerts = alert_result.get("alerts", [])
+
     return VideoUploadResponse(
         message="Video uploaded and processed successfully",
         upload=UploadInfo(
@@ -197,6 +256,10 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
         person_detection=PersonDetectionMetadata(**detection_result),
         tracking=TrackingMetadata(**tracking_result),
         crowd_density=CrowdDensityMetadata(**density_result),
-        heatmap=HeatmapMetadata(**heatmap_result),
-        behaviour_analysis=BehaviourAnalysisMetadata(**behaviour_result)
+        heatmaps=heatmap_meta,
+        heatmap=heatmap_meta,
+        behaviour_analysis=BehaviourAnalysisMetadata(**behaviour_result),
+        risk_assessment=RiskAssessmentMetadataSchema(**risk_result),
+        recommendations=recommendation_result.get("recommendations", []),
+        alerts=[AlertItemSchema(**a) for a in raw_alerts]
     )
