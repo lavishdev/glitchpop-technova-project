@@ -2,6 +2,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from config.settings import settings
 from models.schemas import (
+    CrowdDensityMetadata,
     ErrorResponse,
     FrameExtractionMetadata,
     HealthResponse,
@@ -12,6 +13,7 @@ from models.schemas import (
     UploadInfo,
     VideoUploadResponse,
 )
+from tracking.crowd_density import CrowdDensityEstimator
 from tracking.frame_extractor import FrameExtractor
 from tracking.multi_object_tracker import MultiObjectTracker
 from tracking.person_detector import PersonDetector
@@ -56,14 +58,14 @@ async def get_health() -> HealthResponse:
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": ErrorResponse,
-            "description": "Unexpected internal server error, extraction, detection, or tracking failure"
+            "description": "Unexpected internal server error, extraction, detection, tracking, or density failure"
         }
     },
     status_code=status.HTTP_200_OK,
-    summary="Upload Video, Extract Frames, Detect Persons, and Track Objects"
+    summary="Upload Video and Run Full AI Analytics Pipeline"
 )
 async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
-    """Accept, validate, and save an uploaded video file, extract frames, detect persons, and run ByteTrack multi-object tracking."""
+    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, and estimate crowd density."""
     if not file.filename or not is_allowed_video_extension(file.filename):
         logger.warning(f"Rejected video upload with unsupported extension: '{file.filename}'")
         raise HTTPException(
@@ -132,6 +134,20 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Detection complete, but multi-object tracking failed."
         )
 
+    try:
+        density_estimator = CrowdDensityEstimator()
+        density_result = density_estimator.estimate_density_from_tracks(tracking_result)
+        logger.info(
+            f"Crowd density estimation complete for '{saved_path.name}': "
+            f"highest density={density_result['highest_density']}, avg={density_result['average_people']} people"
+        )
+    except Exception as exc:
+        logger.error(f"Crowd density estimation failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Tracking complete, but crowd density estimation failed."
+        )
+
     return VideoUploadResponse(
         message="Video uploaded and processed successfully",
         upload=UploadInfo(
@@ -141,5 +157,6 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
         ),
         frame_extraction=FrameExtractionMetadata(**extraction_result),
         person_detection=PersonDetectionMetadata(**detection_result),
-        tracking=TrackingMetadata(**tracking_result)
+        tracking=TrackingMetadata(**tracking_result),
+        crowd_density=CrowdDensityMetadata(**density_result)
     )

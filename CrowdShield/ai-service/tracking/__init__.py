@@ -1,6 +1,7 @@
 from tracking.frame_extractor import FrameExtractor, FrameMetadata
 from tracking.person_detector import PersonDetector, DetectionMetadata, PERSON_CLASS_ID
 from tracking.multi_object_tracker import MultiObjectTracker, TrackedObject, TrackingSummary
+from tracking.crowd_density import CrowdDensityEstimator, FrameDensityInfo, DensitySummary, DENSITY_LEVELS
 
 __all__ = [
     "FrameExtractor",
@@ -11,4 +12,8 @@ __all__ = [
     "MultiObjectTracker",
     "TrackedObject",
     "TrackingSummary",
+    "CrowdDensityEstimator",
+    "FrameDensityInfo",
+    "DensitySummary",
+    "DENSITY_LEVELS",
 ]

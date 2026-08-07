@@ -61,6 +61,21 @@ class TrackingMetadata(BaseModel):
     tracks: List[TrackItem]
 
 
+class FrameDensityInfoSchema(BaseModel):
+    frame: str = Field(..., examples=["frame_000001.jpg"])
+    people_count: int = Field(..., examples=[18])
+    density: str = Field(..., examples=["HIGH"])
+
+
+class CrowdDensityMetadata(BaseModel):
+    total_frames: int = Field(..., examples=[341])
+    average_people: float = Field(..., examples=[17.2])
+    maximum_people: int = Field(..., examples=[28])
+    minimum_people: int = Field(..., examples=[2])
+    highest_density: str = Field(..., examples=["HIGH"])
+    frames: List[FrameDensityInfoSchema]
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -70,3 +85,4 @@ class VideoUploadResponse(BaseModel):
     frame_extraction: FrameExtractionMetadata
     person_detection: PersonDetectionMetadata
     tracking: TrackingMetadata
+    crowd_density: CrowdDensityMetadata

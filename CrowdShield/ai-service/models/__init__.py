@@ -9,6 +9,8 @@ from models.schemas import (
     PersonDetectionMetadata,
     TrackItem,
     TrackingMetadata,
+    FrameDensityInfoSchema,
+    CrowdDensityMetadata,
     VideoUploadResponse,
 )
 
@@ -23,5 +25,7 @@ __all__ = [
     "PersonDetectionMetadata",
     "TrackItem",
     "TrackingMetadata",
+    "FrameDensityInfoSchema",
+    "CrowdDensityMetadata",
     "VideoUploadResponse",
 ]
