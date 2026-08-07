@@ -2,6 +2,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
 from config.settings import settings
 from models.schemas import (
+    BehaviourAnalysisMetadata,
     CrowdDensityMetadata,
     ErrorResponse,
     FrameExtractionMetadata,
@@ -14,6 +15,7 @@ from models.schemas import (
     UploadInfo,
     VideoUploadResponse,
 )
+from tracking.behaviour_detector import BehaviourDetector
 from tracking.crowd_density import CrowdDensityEstimator
 from tracking.frame_extractor import FrameExtractor
 from tracking.heatmap_generator import HeatmapGenerator
@@ -60,14 +62,14 @@ async def get_health() -> HealthResponse:
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             "model": ErrorResponse,
-            "description": "Unexpected internal server error, extraction, detection, tracking, density, or heatmap failure"
+            "description": "Unexpected internal server error during pipeline processing"
         }
     },
     status_code=status.HTTP_200_OK,
     summary="Upload Video and Run Full AI Analytics Pipeline"
 )
 async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
-    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, estimate crowd density, and generate heatmaps."""
+    """Accept, validate, and save an uploaded video file, extract frames, detect persons, track objects, estimate crowd density, generate heatmaps, and detect suspicious behavior."""
     if not file.filename or not is_allowed_video_extension(file.filename):
         logger.warning(f"Rejected video upload with unsupported extension: '{file.filename}'")
         raise HTTPException(
@@ -167,6 +169,23 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Crowd density complete, but heatmap generation failed."
         )
 
+    try:
+        behaviour_detector = BehaviourDetector()
+        behaviour_result = behaviour_detector.analyze_behaviour(
+            tracking_result=tracking_result,
+            crowd_density_result=density_result
+        )
+        logger.info(
+            f"Suspicious behaviour detection complete for '{saved_path.name}': "
+            f"overall behaviour='{behaviour_result['overall_behaviour']}', max risk={behaviour_result['max_risk_score']}"
+        )
+    except Exception as exc:
+        logger.error(f"Suspicious behaviour detection failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Heatmap generation complete, but suspicious behaviour detection failed."
+        )
+
     return VideoUploadResponse(
         message="Video uploaded and processed successfully",
         upload=UploadInfo(
@@ -178,5 +197,6 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
         person_detection=PersonDetectionMetadata(**detection_result),
         tracking=TrackingMetadata(**tracking_result),
         crowd_density=CrowdDensityMetadata(**density_result),
-        heatmap=HeatmapMetadata(**heatmap_result)
+        heatmap=HeatmapMetadata(**heatmap_result),
+        behaviour_analysis=BehaviourAnalysisMetadata(**behaviour_result)
     )

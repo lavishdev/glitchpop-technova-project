@@ -3,6 +3,7 @@ from tracking.person_detector import PersonDetector, DetectionMetadata, PERSON_C
 from tracking.multi_object_tracker import MultiObjectTracker, TrackedObject, TrackingSummary
 from tracking.crowd_density import CrowdDensityEstimator, FrameDensityInfo, DensitySummary, DENSITY_LEVELS
 from tracking.heatmap_generator import HeatmapGenerator, HeatmapMetadata
+from tracking.behaviour_detector import BehaviourDetector, FrameBehaviourInfo, BehaviourAnalysisMetadata
 
 __all__ = [
     "FrameExtractor",
@@ -19,4 +20,7 @@ __all__ = [
     "DENSITY_LEVELS",
     "HeatmapGenerator",
     "HeatmapMetadata",
+    "BehaviourDetector",
+    "FrameBehaviourInfo",
+    "BehaviourAnalysisMetadata",
 ]

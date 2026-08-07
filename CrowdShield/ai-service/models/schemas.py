@@ -82,6 +82,22 @@ class HeatmapMetadata(BaseModel):
     generated_files: List[str] = Field(..., examples=[["heatmap_000001.jpg", "heatmap_000002.jpg"]])
 
 
+class FrameBehaviourInfoSchema(BaseModel):
+    frame: str = Field(..., examples=["frame_000001.jpg"])
+    behaviour_label: str = Field(..., examples=["NORMAL"])
+    risk_score: float = Field(..., examples=[0.1])
+    suspicious_tracks: int = Field(..., examples=[0])
+
+
+class BehaviourAnalysisMetadata(BaseModel):
+    total_frames_analyzed: int = Field(..., examples=[341])
+    overall_behaviour: str = Field(..., examples=["NORMAL"])
+    max_risk_score: float = Field(..., examples=[0.85])
+    average_risk_score: float = Field(..., examples=[0.22])
+    suspicious_events_count: int = Field(..., examples=[4])
+    frames: List[FrameBehaviourInfoSchema]
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -93,3 +109,4 @@ class VideoUploadResponse(BaseModel):
     tracking: TrackingMetadata
     crowd_density: CrowdDensityMetadata
     heatmap: HeatmapMetadata
+    behaviour_analysis: BehaviourAnalysisMetadata
