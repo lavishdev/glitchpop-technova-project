@@ -34,3 +34,4 @@ logs/*
 .coverage
 htmlcov/
 yolo11n.pt
+.env

@@ -17,6 +17,8 @@ from models.schemas import (
     RiskAssessmentMetadataSchema,
     AlertItemSchema,
     IncidentReportSchema,
+    MultilingualAnnouncementsSchema,
+    GeminiAnalysisSchema,
     VideoUploadResponse,
 )
 
@@ -39,5 +41,7 @@ __all__ = [
     "RiskAssessmentMetadataSchema",
     "AlertItemSchema",
     "IncidentReportSchema",
+    "MultilingualAnnouncementsSchema",
+    "GeminiAnalysisSchema",
     "VideoUploadResponse",
 ]

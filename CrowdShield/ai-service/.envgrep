@@ -1,0 +1,1 @@
+python -c "from config.settings import settings; print('GEMINI_API_KEY loaded:', bool(settings.GEMINI_API_KEY))"

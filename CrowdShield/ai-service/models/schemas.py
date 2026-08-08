@@ -123,6 +123,17 @@ class IncidentReportSchema(BaseModel):
     alerts: List[AlertItemSchema]
 
 
+class MultilingualAnnouncementsSchema(BaseModel):
+    en: str = Field(..., examples=["Please remain calm and follow staff instructions."])
+    hi: str = Field(..., examples=["कृपया शांत रहें और कर्मचारियों के निर्देशों का पालन करें।"])
+
+
+class GeminiAnalysisSchema(BaseModel):
+    incident_summary: str = Field(..., examples=["High density crowd detected with potential surge."])
+    ai_recommendations: List[str] = Field(..., examples=[["Deploy extra security immediately."]])
+    multilingual_announcements: MultilingualAnnouncementsSchema
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -143,4 +154,5 @@ class VideoUploadResponse(BaseModel):
     )
     alerts: List[AlertItemSchema]
     incident_report: IncidentReportSchema
-    pdf_report: str = Field(..., examples=["outputs/reports/550e8400-e29b-41d4-a716-446655440000_report.pdf"])
+    pdf_report: Optional[str] = Field(default=None, examples=["outputs/reports/550e8400-e29b-41d4-a716-446655440000_report.pdf"])
+    gemini_analysis: GeminiAnalysisSchema
