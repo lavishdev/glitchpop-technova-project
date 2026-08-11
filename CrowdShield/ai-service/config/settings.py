@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     LOGS_DIR: str = "logs"
     LOG_LEVEL: str = "INFO"
 
+    GEMINI_API_KEY: Union[str, None] = None
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

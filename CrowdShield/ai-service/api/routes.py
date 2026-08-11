@@ -19,6 +19,7 @@ from models.schemas import (
     VideoUploadResponse,
 )
 from recommendation.recommendation_engine import IntelligentRecommendationEngine
+from reporting.gemini_integration import GeminiAnalyzer
 from reporting.incident_report import IncidentReportGenerator
 from reporting.pdf_report import PDFReportGenerator
 from risk.alert_generator import AlertGenerator
@@ -272,6 +273,22 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Alert generation complete, but incident report synthesis failed."
         )
 
+    try:
+        gemini_analyzer = GeminiAnalyzer()
+        gemini_result = gemini_analyzer.analyze(report_result)
+        logger.info(f"Gemini AI analysis complete for '{saved_path.name}'")
+    except Exception as exc:
+        logger.error(f"Gemini AI analysis failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        # Fallback provided by GeminiAnalyzer on failure, no HTTP 500 raised.
+        gemini_result = {
+            "incident_summary": "Gemini API integration is disabled or failed.",
+            "ai_recommendations": ["No AI recommendations available."],
+            "multilingual_announcements": {
+                "en": "No announcement available.",
+                "hi": "कोई घोषणा उपलब्ध नहीं है।"
+            }
+        }
+
     pdf_path = None
     try:
         pdf_gen = PDFReportGenerator()
@@ -309,5 +326,6 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             recommendations=report_result.get("recommendations", []),
             alerts=[AlertItemSchema(**a) for a in report_result.get("alerts", [])]
         ),
-        pdf_report=pdf_path
+        pdf_report=pdf_path,
+        gemini_analysis=gemini_result
     )
