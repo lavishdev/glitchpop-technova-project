@@ -13,6 +13,7 @@ import com.crowdshield.incident.dto.IncidentDto;
 import com.crowdshield.incident.mapper.IncidentMapper;
 import com.crowdshield.camera.CameraRepository;
 import com.crowdshield.camera.CameraStatus;
+import com.crowdshield.dashboard.dto.DashboardSummaryDto;
 import com.crowdshield.dashboard.dto.ZoneAnalyticsDto;
 import com.crowdshield.activity.ActivityLogRepository;
 import com.crowdshield.activity.dto.ActivityLogDto;
@@ -70,6 +71,33 @@ public class DashboardService {
         metrics.put("registeredUsers", registeredUsers);
         
         return metrics;
+    }
+
+    public DashboardSummaryDto getDashboardSummary() {
+        long totalAlerts = alertRepository.count();
+        long activeAlerts = alertRepository.countByIsReadFalse();
+        
+        long totalIncidents = incidentRepository.count();
+        long activeIncidents = incidentRepository.countByStatus(IncidentStatus.OPEN) + 
+                               incidentRepository.countByStatus(IncidentStatus.IN_PROGRESS);
+        
+        long registeredUsers = userRepository.count();
+        long connectedCameras = cameraRepository.count();
+        long onlineCameras = cameraRepository.countByStatus(CameraStatus.ONLINE);
+        
+        Double avgDensity = crowdHistoryRepository.getAverageDensity();
+        double averageCrowdDensity = avgDensity != null ? avgDensity : 0.0;
+
+        return DashboardSummaryDto.builder()
+                .totalAlerts(totalAlerts)
+                .activeAlerts(activeAlerts)
+                .totalIncidents(totalIncidents)
+                .activeIncidents(activeIncidents)
+                .registeredUsers(registeredUsers)
+                .onlineCameras(onlineCameras)
+                .totalCameras(connectedCameras)
+                .averageCrowdDensity(averageCrowdDensity)
+                .build();
     }
 
     public List<AlertDto> getRecentAlerts() {

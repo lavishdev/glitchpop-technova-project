@@ -62,6 +62,33 @@ public class UserService {
         
         return toDto(saved);
     }
+    
+    public void updateDeviceToken(String username, String token) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setDeviceToken(token);
+        userRepository.save(user);
+    }
+    
+    public UserDto getCurrentUserDto(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return toDto(user);
+    }
+    
+    public void updatePassword(String username, com.crowdshield.user.dto.UpdatePasswordDto dto) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+        
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+        
+        activityLogService.logActivity(username, com.crowdshield.activity.ActivityAction.SYSTEM_EVENT, "User updated their password");
+    }
 
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {

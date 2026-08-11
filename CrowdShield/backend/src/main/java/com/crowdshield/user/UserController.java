@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +24,17 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<UserDto>>> getAllUsers(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(userService.getAllUsers(pageable)));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserDto>> getCurrentUser() {
+        return ResponseEntity.ok(ApiResponse.success(userService.getCurrentUserDto(getCurrentUsername())));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<ApiResponse<Void>> updatePassword(@Valid @RequestBody com.crowdshield.user.dto.UpdatePasswordDto dto) {
+        userService.updatePassword(getCurrentUsername(), dto);
+        return ResponseEntity.ok(ApiResponse.success(null, "Password updated successfully"));
     }
 
     @PostMapping
@@ -47,5 +60,10 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success(null, "User deleted successfully"));
+    }
+
+    private String getCurrentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.getName() != null) ? auth.getName() : "system";
     }
 }

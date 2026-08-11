@@ -17,8 +17,8 @@ public class AlertService {
     private final AlertMapper alertMapper;
     private final com.crowdshield.activity.ActivityLogService activityLogService;
 
-    public Page<AlertDto> getAllAlerts(String type, AlertSeverity severity, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        return alertRepository.findFilteredAlerts(type, severity, startDate, endDate, pageable)
+    public Page<AlertDto> getAllAlerts(String type, AlertSeverity severity, LocalDateTime startDate, LocalDateTime endDate, String location, Boolean isRead, String search, Pageable pageable) {
+        return alertRepository.findFilteredAlerts(type, severity, startDate, endDate, location, isRead, search, pageable)
                 .map(alertMapper::toDto);
     }
 

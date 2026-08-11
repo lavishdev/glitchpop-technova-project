@@ -27,8 +27,11 @@ public class AlertController {
             @RequestParam(required = false) AlertSeverity severity,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Boolean isRead,
+            @RequestParam(required = false) String search,
             Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(alertService.getAllAlerts(type, severity, startDate, endDate, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(alertService.getAllAlerts(type, severity, startDate, endDate, location, isRead, search, pageable)));
     }
 
     @GetMapping("/unread")

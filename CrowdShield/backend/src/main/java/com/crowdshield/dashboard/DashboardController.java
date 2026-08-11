@@ -4,8 +4,10 @@ import com.crowdshield.alert.dto.AlertDto;
 import com.crowdshield.common.ApiResponse;
 import com.crowdshield.incident.dto.IncidentDto;
 import com.crowdshield.activity.dto.ActivityLogDto;
+import com.crowdshield.dashboard.dto.DashboardSummaryDto;
 import com.crowdshield.dashboard.dto.ZoneAnalyticsDto;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,8 +27,15 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/stats")
+    @Operation(summary = "Get detailed dashboard statistics", description = "Legacy endpoint for detailed system metrics.")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardStats() {
         return ResponseEntity.ok(ApiResponse.success(dashboardService.getSummaryMetrics()));
+    }
+
+    @GetMapping("/summary")
+    @Operation(summary = "Get high-level dashboard summary", description = "Returns core KPIs for the main dashboard view.")
+    public ResponseEntity<ApiResponse<DashboardSummaryDto>> getDashboardSummary() {
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getDashboardSummary()));
     }
 
     @GetMapping("/recent-alerts")

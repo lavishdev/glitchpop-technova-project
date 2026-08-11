@@ -26,5 +26,8 @@ public class User {
 
     @Column(nullable = false)
     private String role; // e.g., ROLE_ADMIN, ROLE_USER
+
+    @Column(length = 500)
+    private String deviceToken;
 }
 
