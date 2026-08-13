@@ -134,6 +134,24 @@ class GeminiAnalysisSchema(BaseModel):
     multilingual_announcements: MultilingualAnnouncementsSchema
 
 
+class SimulationMinuteProjection(BaseModel):
+    minute: int = Field(..., examples=[1])
+    predicted_crowd_count: int = Field(..., examples=[20])
+    predicted_density_level: str = Field(..., examples=["HIGH"])
+    predicted_risk_level: str = Field(..., examples=["HIGH"])
+    predicted_risk_score: float = Field(..., examples=[0.65])
+    movement_description: str = Field(..., examples=["Projected headcount is 20 (HIGH density)."])
+
+
+class CrowdSimulationSchema(BaseModel):
+    forecast_duration_minutes: int = Field(default=5, examples=[5])
+    predicted_crowd_movement: str = Field(..., examples=["Crowd movement classified as INFLOW_SURGE."])
+    predicted_risk: str = Field(..., examples=["Predicted risk is expected to evolve from MEDIUM to HIGH."])
+    overall_predicted_risk_level: str = Field(..., examples=["HIGH"])
+    overall_predicted_risk_score: float = Field(..., examples=[0.65])
+    minute_by_minute_projections: List[SimulationMinuteProjection]
+
+
 class VideoUploadResponse(BaseModel):
     message: str = Field(
         default="Video uploaded and processed successfully",
@@ -156,3 +174,4 @@ class VideoUploadResponse(BaseModel):
     incident_report: IncidentReportSchema
     pdf_report: Optional[str] = Field(default=None, examples=["outputs/reports/550e8400-e29b-41d4-a716-446655440000_report.pdf"])
     gemini_analysis: GeminiAnalysisSchema
+    crowd_simulation: CrowdSimulationSchema
