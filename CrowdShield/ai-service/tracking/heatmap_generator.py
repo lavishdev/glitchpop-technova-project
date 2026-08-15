@@ -26,7 +26,7 @@ class HeatmapGenerator:
     def __init__(
         self,
         output_base_dir: Optional[Union[str, Path]] = None,
-        gaussian_kernel_size: int = 35,
+        gaussian_kernel_size: int = 51,
         alpha: float = 0.6,
         beta: float = 0.4
     ) -> None:
@@ -40,6 +40,16 @@ class HeatmapGenerator:
             self.output_base_dir = Path(output_base_dir).resolve()
         else:
             self.output_base_dir = Path(settings.OUTPUTS_DIR).resolve() / "heatmaps"
+
+        # Dynamically compute single person Gaussian blur peak value for consistent density scaling.
+        # This prevents single isolated persons from appearing as maximum-red critical hotspots.
+        dummy = np.zeros((self.gaussian_kernel_size, self.gaussian_kernel_size), dtype=np.float32)
+        dummy[self.gaussian_kernel_size // 2, self.gaussian_kernel_size // 2] = 1.0
+        blurred = cv2.GaussianBlur(dummy, (self.gaussian_kernel_size, self.gaussian_kernel_size), 10.0)
+        self.single_person_peak = float(np.max(blurred))
+        
+        # Target single value scaling is handled dynamically in generate_heatmaps_from_tracks
+        # using offset + controlled scale.
 
     def generate_heatmaps_from_tracks(
         self,
@@ -98,11 +108,18 @@ class HeatmapGenerator:
                 density_map = cv2.GaussianBlur(
                     density_map,
                     (self.gaussian_kernel_size, self.gaussian_kernel_size),
-                    0
+                    10.0
                 )
-                max_val = np.max(density_map)
-                if max_val > 0:
-                    density_map = (density_map / max_val) * 255.0
+                
+                # Scale density values relative to a single person peak using a power-law mapping.
+                # Smoothly scales from 0.0 to green (110.0) and yellow (160.0), avoiding step-jump artifacts.
+                if self.single_person_peak > 0:
+                    density_ratio = density_map / self.single_person_peak
+                    # 110.0 maps 1 person (ratio 1.0) to GREEN.
+                    # 0.8 exponent maps 4 nearby people (ratio around 1.6-1.8) to clearly YELLOW (~160).
+                    # Higher density ratios naturally progress to ORANGE and RED.
+                    density_map = 110.0 * np.power(density_ratio, 0.8)
+                    density_map = np.clip(density_map, 0.0, 255.0)
 
             density_uint8 = density_map.astype(np.uint8)
             heatmap_color = cv2.applyColorMap(density_uint8, cv2.COLORMAP_JET)
