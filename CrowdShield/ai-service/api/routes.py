@@ -17,7 +17,9 @@ from models.schemas import (
     UploadInfo,
     VideoUploadResponse,
     ChatRequest,
-    ChatResponse
+    ChatResponse,
+    CrowdSimulationSchema,
+    SimulationMinuteProjection,
 )
 from recommendation.recommendation_engine import IntelligentRecommendationEngine
 from reporting.gemini_integration import GeminiAnalyzer
@@ -25,6 +27,7 @@ from reporting.incident_report import IncidentReportGenerator
 from reporting.pdf_report import PDFReportGenerator
 from risk.alert_generator import AlertGenerator
 from risk.risk_assessor import UnifiedRiskAssessor
+from simulation import RuleBasedSimulator
 from tracking.behaviour_detector import BehaviourDetector
 from tracking.crowd_density import CrowdDensityEstimator
 from tracking.frame_extractor import FrameExtractor
@@ -247,6 +250,22 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             detail="Recommendation generation complete, but alert generation failed."
         )
 
+    try:
+        simulator = RuleBasedSimulator()
+        simulation_result = simulator.simulate(
+            tracking_result=tracking_result,
+            density_result=density_result,
+            risk_result=risk_result,
+            behaviour_result=behaviour_result
+        )
+        logger.info(f"Rule-based crowd simulation complete for '{saved_path.name}'")
+    except Exception as exc:
+        logger.error(f"Rule-based crowd simulation failed for uploaded video '{saved_path.name}': {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Alert generation complete, but crowd simulation failed."
+        )
+
     upload_info_dict = {
         "filename": saved_path.name,
         "content_type": file.content_type or "application/octet-stream",
@@ -311,6 +330,19 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
     heatmap_meta.heatmaps_directory = f"/outputs/heatmaps/{video_name}"
     pdf_url = f"/outputs/reports/{video_name}_report.pdf" if pdf_path else None
 
+    pred_projections = [
+        SimulationMinuteProjection(**p)
+        for p in simulation_result.get("minute_by_minute_projections", [])
+    ]
+    simulation_meta = CrowdSimulationSchema(
+        forecast_duration_minutes=simulation_result.get("forecast_duration_minutes", 5),
+        predicted_crowd_movement=simulation_result.get("predicted_crowd_movement", ""),
+        predicted_risk=simulation_result.get("predicted_risk", ""),
+        overall_predicted_risk_level=simulation_result.get("overall_predicted_risk_level", "SAFE"),
+        overall_predicted_risk_score=simulation_result.get("overall_predicted_risk_score", 0.0),
+        minute_by_minute_projections=pred_projections
+    )
+
     return VideoUploadResponse(
         message="Video uploaded and processed successfully",
         upload=UploadInfo(**upload_info_dict),
@@ -335,7 +367,8 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             alerts=[AlertItemSchema(**a) for a in report_result.get("alerts", [])]
         ),
         pdf_report=pdf_url,
-        gemini_analysis=gemini_result
+        gemini_analysis=gemini_result,
+        crowd_simulation=simulation_meta
     )
 
 
