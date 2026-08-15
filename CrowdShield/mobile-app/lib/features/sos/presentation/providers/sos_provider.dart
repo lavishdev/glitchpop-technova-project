@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/fake/fake_sos_repository.dart';
+import '../../../../core/providers/network_providers.dart';
 import '../../domain/models/emergency_contact_model.dart';
 import '../../domain/models/sos_request_model.dart';
 import '../../domain/repositories/sos_repository.dart';
+import '../../data/dio/dio_sos_repository.dart';
 
 enum SOSStatus { idle, holding, sending, sent, cancelled, error }
 
 final sosRepositoryProvider = Provider<SOSRepository>((ref) {
-  return FakeSOSRepository();
+  return DioSOSRepository(ref.watch(dioProvider));
 });
 
 class SOSState {

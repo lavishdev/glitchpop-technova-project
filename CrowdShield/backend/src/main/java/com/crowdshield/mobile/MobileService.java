@@ -14,8 +14,8 @@ import com.crowdshield.mobile.dto.ReportIncidentDto;
 import com.crowdshield.mobile.dto.SosRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,29 +25,51 @@ public class MobileService {
     private final DashboardService dashboardService;
     private final IncidentService incidentService;
     private final ActivityLogService activityLogService;
+    private final com.crowdshield.analytics.AnalysisService analysisService;
 
     public MobileHomeDto getHomeData() {
+        Map<String, Object> latestAnalysis = analysisService.getLatestAnalysis();
         DashboardSummaryDto summary = dashboardService.getDashboardSummary();
         
-        String status = summary.getAverageCrowdDensity() > 80 ? "High Density Warning" : "Normal Operation";
-        String severity = summary.getAverageCrowdDensity() > 80 ? "HIGH" : "NORMAL";
-        String riskLevel = summary.getAverageCrowdDensity() > 80 ? "HIGH" : "LOW";
+        if (latestAnalysis != null) {
+            int density = latestAnalysis.get("density") != null ? (int) latestAnalysis.get("density") : 0;
+            String riskLevel = (String) latestAnalysis.getOrDefault("riskLevel", "LOW");
+            String status = riskLevel.equals("HIGH") || riskLevel.equals("CRITICAL") ? "High Risk Active" : "Normal Operation";
+            
+            return MobileHomeDto.builder()
+                    .venue(MobileHomeDto.VenueInfo.builder()
+                            .name((String) latestAnalysis.getOrDefault("location", "TechNova Arena"))
+                            .status(status)
+                            .severity(riskLevel)
+                            .build())
+                    .metrics(MobileHomeDto.MobileMetrics.builder()
+                            .peopleCount((long) density)
+                            .crowdDensity((double) density)
+                            .riskLevel(riskLevel)
+                            .activeAlerts(summary.getActiveAlerts())
+                            .build())
+                    .recommendation(MobileHomeDto.MobileRecommendation.builder()
+                            .title("System Recommendation")
+                            .message("Active AI monitoring: " + density + " individuals detected.")
+                            .build())
+                    .build();
+        }
 
         return MobileHomeDto.builder()
                 .venue(MobileHomeDto.VenueInfo.builder()
                         .name("TechNova Arena")
-                        .status(status)
-                        .severity(severity)
+                        .status("Awaiting AI Connection")
+                        .severity("NORMAL")
                         .build())
                 .metrics(MobileHomeDto.MobileMetrics.builder()
-                        .peopleCount((long) (summary.getAverageCrowdDensity() * 10)) // mock conversion
-                        .crowdDensity(summary.getAverageCrowdDensity())
-                        .riskLevel(riskLevel)
+                        .peopleCount(0L)
+                        .crowdDensity(0.0)
+                        .riskLevel("LOW")
                         .activeAlerts(summary.getActiveAlerts())
                         .build())
                 .recommendation(MobileHomeDto.MobileRecommendation.builder()
                         .title("System Recommendation")
-                        .message("Use Gate 4 due to congestion near Gate 2.")
+                        .message("Upload a video to start AI simulation.")
                         .build())
                 .build();
     }

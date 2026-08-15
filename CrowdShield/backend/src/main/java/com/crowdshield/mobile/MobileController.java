@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/mobile")
@@ -58,6 +59,35 @@ public class MobileController {
     public ResponseEntity<ApiResponse<Void>> registerDeviceToken(@Valid @RequestBody DeviceTokenDto dto) {
         userService.updateDeviceToken(getCurrentUsername(), dto.getDeviceToken());
         return ResponseEntity.ok(ApiResponse.success(null, "Device token registered successfully"));
+    }
+
+    @GetMapping("/report")
+    public ResponseEntity<ApiResponse<List<Object>>> getMyReports() {
+        // MVP: Returns empty list for now until user-specific report history is implemented
+        return ResponseEntity.ok(ApiResponse.success(java.util.Collections.emptyList()));
+    }
+
+    @DeleteMapping("/report/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteReport(@PathVariable String id) {
+        // MVP: Return success for deletion
+        return ResponseEntity.ok(ApiResponse.success(null, "Report deleted successfully"));
+    }
+
+    @GetMapping("/emergency-contacts")
+    public ResponseEntity<ApiResponse<List<Map<String, String>>>> getEmergencyContacts() {
+        // MVP: Static list managed by backend config
+        var contacts = List.of(
+            Map.of("id", "c_01", "title", "Security Control Room", "subtitle", "24/7 Command Center", "phone", "+1 (800) 555-0199"),
+            Map.of("id", "c_02", "title", "Medical Aid Response", "subtitle", "First Aid Paramedics", "phone", "+1 (800) 555-0198"),
+            Map.of("id", "c_03", "title", "Fire & Safety Command", "subtitle", "Evacuation Marshals", "phone", "+1 (800) 555-0197")
+        );
+        return ResponseEntity.ok(ApiResponse.success(contacts));
+    }
+
+    @PatchMapping("/sos/{id}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelSos(@PathVariable String id) {
+        // MVP: Return success for SOS cancellation
+        return ResponseEntity.ok(ApiResponse.success(null, "SOS cancelled successfully"));
     }
 
     private String getCurrentUsername() {

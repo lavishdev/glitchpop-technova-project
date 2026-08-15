@@ -14,9 +14,10 @@ from models.schemas import (
     RiskAssessmentMetadataSchema,
     RootResponse,
     TrackingMetadata,
-    UploadErrorResponse,
     UploadInfo,
     VideoUploadResponse,
+    ChatRequest,
+    ChatResponse,
     CrowdSimulationSchema,
     SimulationMinuteProjection,
 )
@@ -69,7 +70,7 @@ async def get_health() -> HealthResponse:
     response_model=VideoUploadResponse,
     responses={
         status.HTTP_400_BAD_REQUEST: {
-            "model": UploadErrorResponse,
+            "model": ErrorResponse,
             "description": "Unsupported file type or invalid upload"
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
@@ -322,6 +323,13 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
     heatmap_meta = HeatmapMetadata(**heatmap_result)
     raw_alerts = alert_result.get("alerts", [])
 
+    # Convert absolute paths to web-accessible URLs
+    video_name = extraction_result.get("video_name", "unknown")
+    extraction_result["frames_directory"] = f"/outputs/frames/{video_name}"
+    detection_result["detections_directory"] = f"/outputs/detections/{video_name}"
+    heatmap_meta.heatmaps_directory = f"/outputs/heatmaps/{video_name}"
+    pdf_url = f"/outputs/reports/{video_name}_report.pdf" if pdf_path else None
+
     pred_projections = [
         SimulationMinuteProjection(**p)
         for p in simulation_result.get("minute_by_minute_projections", [])
@@ -358,7 +366,20 @@ async def upload_video(file: UploadFile = File(...)) -> VideoUploadResponse:
             recommendations=report_result.get("recommendations", []),
             alerts=[AlertItemSchema(**a) for a in report_result.get("alerts", [])]
         ),
-        pdf_report=pdf_path,
+        pdf_report=pdf_url,
         gemini_analysis=gemini_result,
         crowd_simulation=simulation_meta
     )
+
+
+@router.post(
+    "/chat",
+    response_model=ChatResponse,
+    status_code=status.HTTP_200_OK,
+    summary="AI Assistant Chat"
+)
+async def chat(request: ChatRequest) -> ChatResponse:
+    """Send a conversational query to the AI Assistant."""
+    gemini_analyzer = GeminiAnalyzer()
+    response_text = gemini_analyzer.chat(request.query, request.context)
+    return ChatResponse(response=response_text)

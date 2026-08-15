@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/fake/fake_alerts_repository.dart';
+import '../../../../core/providers/network_providers.dart';
 import '../../domain/models/alert_model.dart';
 import '../../domain/repositories/alerts_repository.dart';
+import '../../data/dio/dio_alerts_repository.dart';
 
 final alertsRepositoryProvider = Provider<AlertsRepository>((ref) {
-  return FakeAlertsRepository();
+  return DioAlertsRepository(ref.watch(dioProvider));
 });
 
 class AlertsState {

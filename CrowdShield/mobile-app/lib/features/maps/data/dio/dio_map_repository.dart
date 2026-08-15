@@ -1,14 +1,75 @@
+import 'package:dio/dio.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../domain/models/safe_route_model.dart';
 import '../../domain/models/venue_map_model.dart';
 import '../../domain/models/venue_zone_model.dart';
 import '../../domain/repositories/map_repository.dart';
 
-class FakeMapRepository implements MapRepository {
+class DioMapRepository implements MapRepository {
+  final Dio dio;
+
+  DioMapRepository(this.dio);
+
   @override
   Future<VenueMapModel> getVenueMapData() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      final response = await dio.get(ApiConstants.mobileMap);
+      
+      List<VenueZoneModel> zones = _getStaticBaseZones();
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> backendZones = response.data['data'] ?? [];
+        
+        // Merge backend data with static layout
+        zones = zones.map((zone) {
+          // Attempt to find matching backend data by id or index (MVP mapping)
+          final bz = backendZones.firstWhere(
+            (z) => z['id'].toString() == zone.id || 'zone_${z['id']}' == zone.id, 
+            orElse: () => null
+          );
+          
+          if (bz != null) {
+            return VenueZoneModel(
+              id: zone.id,
+              name: zone.name,
+              riskLevel: bz['riskLevel'] ?? zone.riskLevel,
+              crowdCount: (bz['crowdDensity'] ?? zone.crowdCount).toInt(), // using density as count for MVP
+              density: (bz['crowdDensity'] ?? zone.density).toInt(),
+              status: (bz['activeAlert'] == true) ? 'Alert Active' : 'Normal',
+              xPosition: zone.xPosition,
+              yPosition: zone.yPosition,
+              isExit: zone.isExit,
+              iconType: zone.iconType,
+              recommendation: zone.recommendation,
+            );
+          }
+          return zone;
+        }).toList();
+      }
 
-    final zones = const [
+      return VenueMapModel(
+        venueName: 'Venue Zone Map',
+        zones: zones,
+        safeRoute: const SafeRouteModel(
+          startGate: 'Central Concourse (Sector B)',
+          destination: 'West Exit Gate 4',
+          recommendedExit: 'Gate 4',
+          estimatedTime: '2 minutes',
+          instructions: [
+            'Turn West from Central Concourse',
+            'Bypass Gate 2 congestion area',
+            'Follow green illuminated emergency route to Gate 4',
+          ],
+        ),
+        currentLocationZoneId: 'zone_restroom',
+      );
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Network error occurred fetching map data');
+    }
+  }
+
+  List<VenueZoneModel> _getStaticBaseZones() {
+    return const [
       VenueZoneModel(
         id: 'zone_stage',
         name: 'Main Stage Pit',
@@ -140,24 +201,5 @@ class FakeMapRepository implements MapRepository {
         recommendation: 'Secondary exit option.',
       ),
     ];
-
-    const safeRoute = SafeRouteModel(
-      startGate: 'Central Concourse (Sector B)',
-      destination: 'West Exit Gate 4',
-      recommendedExit: 'Gate 4',
-      estimatedTime: '2 minutes',
-      instructions: [
-        'Turn West from Central Concourse',
-        'Bypass Gate 2 congestion area',
-        'Follow green illuminated emergency route to Gate 4',
-      ],
-    );
-
-    return VenueMapModel(
-      venueName: 'TechNova Arena - 2D Digital Twin',
-      zones: zones,
-      safeRoute: safeRoute,
-      currentLocationZoneId: 'zone_restroom',
-    );
   }
 }

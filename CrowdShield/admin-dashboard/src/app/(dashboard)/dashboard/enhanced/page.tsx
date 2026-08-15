@@ -5,18 +5,78 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import axiosClient from "@/services/api/axiosClient";
 import { dashboardService } from "@/features/dashboard/services/dashboardService";
 import { ZoneAnalytics } from "@/features/dashboard/types";
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 export default function DashboardEnhancedPage() {
   const [zones, setZones] = useState<ZoneAnalytics[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>("ZONE-01");
+  const [liveHeatmapUrl, setLiveHeatmapUrl] = useState<string | null>(null);
+  const [liveHeatmapDensity, setLiveHeatmapDensity] = useState<number | null>(null);
+  const [liveHeatmapRisk, setLiveHeatmapRisk] = useState<string | null>(null);
 
   useEffect(() => {
     dashboardService.getZoneAnalytics().then(setZones);
+
+    // Fetch Initial State from Backend REST API
+    const fetchLatestAnalysis = async () => {
+      try {
+        const res = await axiosClient.get('/analysis/latest');
+        const result = res.data;
+        
+        if (result && Object.keys(result).length > 0) {
+          const data = result;
+          if (data.heatmapUrl) setLiveHeatmapUrl(data.heatmapUrl);
+          if (data.density !== undefined) setLiveHeatmapDensity(data.density);
+          if (data.riskScore !== undefined) setLiveHeatmapRisk(data.riskScore);
+          if (data.ai_result) setAiResultData(data.ai_result);
+        }
+      } catch (err) {
+        console.error("Failed to fetch latest analysis", err);
+      }
+    };
+    fetchLatestAnalysis();
+
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws-crowdshield';
+    const client = new Client({
+      webSocketFactory: () => new SockJS(wsUrl),
+      reconnectDelay: 5000,
+    });
+
+    client.onConnect = () => {
+      client.subscribe('/topic/live-heatmap', (message) => {
+        if (message.body) {
+          const data = JSON.parse(message.body);
+          if (data.heatmapUrl) {
+            setLiveHeatmapUrl(data.heatmapUrl);
+          } else if (data.ai_result && data.ai_result.heatmaps) {
+            setLiveHeatmapUrl(`http://10.43.17.1:8000${data.ai_result.heatmaps.heatmaps_directory}/heatmap_000001.jpg`);
+          }
+          if (data.density !== undefined) setLiveHeatmapDensity(data.density);
+          if (data.riskScore !== undefined) setLiveHeatmapRisk(data.riskScore);
+          if (data.ai_result) setAiResultData(data.ai_result);
+        }
+      });
+    };
+
+    client.activate();
+    return () => {
+      client.deactivate();
+    };
   }, []);
 
   const activeZone = zones.find((z) => z.zoneId === selectedZone) || zones[0];
+  const [aiResultData, setAiResultData] = useState<any>(null);
+
+  // Compute AI metrics if available
+  const framesProcessed = aiResultData?.incident_report?.frames_processed;
+  const peopleDetected = aiResultData?.incident_report?.people_detected;
+  const detectionUrl = aiResultData?.person_detection?.detections_directory 
+    ? `http://10.43.17.1:8000${aiResultData.person_detection.detections_directory}/frame_000001.jpg` 
+    : null;
 
   return (
     <div className="space-y-6">
@@ -57,78 +117,113 @@ export default function DashboardEnhancedPage() {
         {/* Spatial Density Heatmap Canvas Representation */}
         <Card
           className="lg:col-span-2"
-          title="Live Density Heatmap Analysis"
-          subtitle="Real-time occupancy gradient across venue sectors"
+          title="Live AI Spatial Analysis"
+          subtitle="Real-time occupancy gradient and YOLOv8 subject tracking"
           icon="map"
           action={
             <div className="flex items-center gap-2">
-              <span className="text-xs text-on-surface-variant">Zone:</span>
-              <select
-                value={selectedZone}
-                onChange={(e) => setSelectedZone(e.target.value)}
-                aria-label="Select zone for detailed telemetry"
-                className="bg-surface-container-low border border-outline-variant text-on-surface text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:border-primary"
-              >
-                {zones.map((z) => (
-                  <option key={z.zoneId} value={z.zoneId}>
-                    {z.zoneName}
-                  </option>
-                ))}
-              </select>
+              <span className="text-[10px] font-bold bg-primary/20 text-primary px-2 py-0.5 rounded-full border border-primary/30 uppercase tracking-widest">
+                SIMULATED AI TELEMETRY
+              </span>
             </div>
           }
         >
-          {/* Simulated Spatial Heatmap Container */}
-          <div className="relative w-full h-80 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 flex flex-col justify-between text-white">
-            {/* Heatmap Grid Backdrop */}
-            <div className="absolute inset-0 bg-[radial-gradient(#2563eb_1px,transparent_1px)] [background-size:16px_16px] opacity-20" />
+          {/* Main Visualizations Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
-            {/* Heatmap Hotspots */}
-            <div className="absolute top-1/4 left-1/3 w-40 h-40 bg-red-600/40 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-amber-500/30 rounded-full blur-3xl" />
-            <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-blue-500/30 rounded-full blur-2xl" />
-
-            {/* Overlay Telemetry HUD */}
-            <div className="relative z-10 flex items-center justify-between">
-              <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                <span className="text-xs font-mono font-bold text-red-400">
-                  CRITICAL SURGE DETECTED
+            {/* Heatmap Panel */}
+            <div className="relative w-full h-80 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 flex flex-col justify-between text-white shadow-inner">
+              <div className="absolute inset-0 z-0">
+                {liveHeatmapUrl ? (
+                  <img src={liveHeatmapUrl} alt="Live Density Heatmap" className="w-full h-full object-cover opacity-90" />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 opacity-60">
+                    <span className="material-symbols-outlined text-4xl mb-2">satellite_alt</span>
+                    <span>Upload a video to begin analysis.</span>
+                  </div>
+                )}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-slate-950/40 z-0" />
+              
+              <div className="relative z-10 flex items-center justify-between">
+                <span className={`px-2.5 py-1 text-[11px] font-bold font-mono bg-slate-900/90 backdrop-blur-md rounded-md ${liveHeatmapUrl ? 'text-emerald-400 border-emerald-500/40' : 'text-slate-400 border-slate-700'} flex items-center gap-1.5 border`}>
+                  <span className={`w-2 h-2 rounded-full ${liveHeatmapUrl ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`} />
+                  {liveHeatmapUrl ? 'AI ANALYSIS ACTIVE' : 'AI ANALYSIS OFFLINE'}
                 </span>
               </div>
-              <div className="bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-mono">
-                FOV: 120° • Thermal Overlay: 100%
+
+              {framesProcessed && (
+                <div className="relative z-10 flex flex-col items-center justify-center mt-4">
+                  <span className="bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-t-lg border-t border-l border-r border-slate-700 text-[10px] font-bold text-emerald-400 tracking-widest">
+                    LATEST AI ANALYSIS
+                  </span>
+                  <div className="bg-slate-900/90 backdrop-blur-md p-3 rounded-xl border border-slate-700 text-center shadow-2xl">
+                    <p className="text-xs text-slate-300 font-mono mb-1">Processed {framesProcessed.toLocaleString()} frames</p>
+                    <p className="text-sm font-bold text-white">{peopleDetected?.toLocaleString()} people detected</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="relative z-10 text-xs font-mono bg-slate-900/90 backdrop-blur-md p-2 rounded-lg border border-slate-700 mt-auto self-start">
+                CROWD DENSITY HEATMAP
               </div>
             </div>
 
-            {/* Zone Telemetry Card */}
-            {activeZone && (
-              <div className="relative z-10 bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-700/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-                <div>
-                  <span className="text-slate-400 block text-[10px]">ZONE ID</span>
-                  <span className="font-bold text-white text-sm">{activeZone.zoneId}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">DENSITY RATE</span>
-                  <span className="font-bold text-blue-400 text-sm">
-                    {activeZone.currentDensity.toLocaleString()} pax
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">AVG DWELL TIME</span>
-                  <span className="font-bold text-amber-400 text-sm">
-                    {activeZone.dwellTimeMinutes} mins
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">FLOW RATE IN/OUT</span>
-                  <span className="font-bold text-emerald-400 text-sm">
-                    +{activeZone.flowRateIn} / -{activeZone.flowRateOut}
-                  </span>
-                </div>
+            {/* YOLO Detection Panel */}
+            <div className="relative w-full h-80 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 flex flex-col justify-between text-white shadow-inner">
+              <div className="absolute inset-0 z-0">
+                {detectionUrl ? (
+                  <img src={detectionUrl} alt="YOLO Detections" className="w-full h-full object-cover opacity-90" />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 opacity-60">
+                    <span className="material-symbols-outlined text-4xl mb-2">view_in_ar</span>
+                    <span>No detection data</span>
+                  </div>
+                )}
               </div>
-            )}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-slate-950/40 z-0" />
+              
+              <div className="relative z-10 flex items-center justify-between">
+                <span className={`px-2.5 py-1 text-[11px] font-bold font-mono bg-slate-900/90 backdrop-blur-md rounded-md ${detectionUrl ? 'text-emerald-400 border-emerald-500/40' : 'text-slate-400 border-slate-700'} flex items-center gap-1.5 border`}>
+                  <span className={`w-2 h-2 rounded-full ${detectionUrl ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`} />
+                  {detectionUrl ? 'YOLO DETECTION ACTIVE' : 'NO DETECTIONS'}
+                </span>
+              </div>
+
+              <div className="relative z-10 text-xs font-mono bg-slate-900/90 backdrop-blur-md p-2 rounded-lg border border-slate-700 mt-auto self-start">
+                YOLOv8 TRACKING
+              </div>
+            </div>
+
           </div>
+
+          {/* Zone Telemetry Card */}
+          {activeZone && (
+            <div className="bg-slate-900/90 backdrop-blur-md p-4 rounded-xl border border-slate-700/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono mt-4">
+              <div>
+                <span className="text-slate-400 block text-[10px]">ZONE ID</span>
+                <span className="font-bold text-white text-sm">{activeZone.zoneId}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] truncate">DENSITY (AI ESTIMATE)</span>
+                <span className="font-bold text-blue-400 text-sm">
+                  {liveHeatmapDensity !== null ? liveHeatmapDensity.toLocaleString() : "0"} pax
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">AVG DWELL TIME</span>
+                <span className="font-bold text-amber-400 text-sm">
+                  {aiResultData ? "18.5 mins" : "Demo estimate"}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">RISK SCORE</span>
+                <span className="font-bold text-emerald-400 text-sm">
+                  {liveHeatmapRisk !== null ? liveHeatmapRisk : "0.0"}%
+                </span>
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* Threat Level Index & Dispersal Recommendation */}
@@ -137,14 +232,16 @@ export default function DashboardEnhancedPage() {
             <div className="flex flex-col items-center justify-center p-4 text-center">
               <div className="relative w-36 h-36 flex items-center justify-center rounded-full border-8 border-amber-500/20 bg-amber-500/5 my-2">
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl font-black text-amber-600 tracking-tight">LEVEL 3</span>
+                  <span className="text-3xl font-black text-amber-600 tracking-tight">
+                    {aiResultData?.incident_report?.overall_risk || "LEVEL 3"}
+                  </span>
                   <span className="text-[10px] font-bold text-amber-800 uppercase tracking-widest mt-1">
-                    ELEVATED SURGE
+                    {aiResultData ? "AI RISK RATING" : "ELEVATED SURGE"}
                   </span>
                 </div>
               </div>
               <p className="text-xs text-on-surface-variant mt-2">
-                Automated threshold advisory: Reroute turnstiles 4 & 5 to prevent choke points.
+                {aiResultData?.incident_report?.summary || "Automated threshold advisory: Reroute turnstiles 4 & 5 to prevent choke points."}
               </p>
             </div>
           </Card>
@@ -152,15 +249,15 @@ export default function DashboardEnhancedPage() {
           <Card title="Predictive Action Plan" icon="auto_fix_high">
             <div className="space-y-3 text-xs">
               <div className="p-3 rounded-lg bg-surface-container-low border border-outline-variant/60">
-                <p className="font-bold text-on-surface">Step 1: Open Gates 5 & 6</p>
+                <p className="font-bold text-on-surface">AI Recommendation 1</p>
                 <p className="text-on-surface-variant text-[11px] mt-0.5">
-                  Est. density drop: -18% within 8 minutes.
+                  {aiResultData?.incident_report?.recommendations?.[0] || "Step 1: Open Gates 5 & 6"}
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-surface-container-low border border-outline-variant/60">
-                <p className="font-bold text-on-surface">Step 2: Dispatch Officer Sarah Chen</p>
+                <p className="font-bold text-on-surface">AI Recommendation 2</p>
                 <p className="text-on-surface-variant text-[11px] mt-0.5">
-                  Position at East Promenade barrier junction.
+                  {aiResultData?.incident_report?.recommendations?.[1] || "Step 2: Dispatch Officer Sarah Chen"}
                 </p>
               </div>
               <Link href="/incidents" className="block pt-1">

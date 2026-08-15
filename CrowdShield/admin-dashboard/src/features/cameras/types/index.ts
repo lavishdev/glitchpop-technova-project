@@ -10,4 +10,6 @@ export interface CameraStream {
   healthPercentage: number;
   resolution: string;
   fps: number;
+  videoUrl?: string;
+  analysisId?: string;
 }

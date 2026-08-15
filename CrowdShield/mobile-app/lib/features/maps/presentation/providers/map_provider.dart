@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/fake/fake_map_repository.dart';
+import '../../../../core/providers/network_providers.dart';
 import '../../domain/models/venue_map_model.dart';
 import '../../domain/models/venue_zone_model.dart';
 import '../../domain/repositories/map_repository.dart';
+import '../../data/dio/dio_map_repository.dart';
 
 final mapRepositoryProvider = Provider<MapRepository>((ref) {
-  return FakeMapRepository();
+  return DioMapRepository(ref.watch(dioProvider));
 });
 
 class MapState {

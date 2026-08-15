@@ -12,7 +12,7 @@ import '../providers/profile_provider.dart';
 import '../widgets/about_section.dart';
 import '../widgets/officer_profile_card.dart';
 import '../widgets/profile_stats_grid.dart';
-import '../widgets/settings_section.dart';
+
 import '../widgets/support_section.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -65,12 +65,6 @@ class ProfilePage extends ConsumerWidget {
                     ProfileStatsGrid(profile: state.profile!)
                         .animate()
                         .fadeIn(duration: 350.ms, delay: 100.ms),
-                    const SizedBox(height: 20),
-                    SettingsSection(
-                      profile: state.profile!,
-                      onToggleNotifications: (val) => notifier.toggleNotifications(val),
-                      onChangeLanguage: (lang) => notifier.setLanguage(lang),
-                    ).animate().fadeIn(duration: 350.ms, delay: 150.ms),
                     const SizedBox(height: 20),
                     const SupportSection()
                         .animate()

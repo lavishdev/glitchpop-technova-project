@@ -44,9 +44,9 @@ export default function EmergencyResponsePage() {
               </span>
             </div>
             <div>
-              <span className="px-2 py-0.5 text-[10px] font-bold bg-white/20 text-white rounded uppercase tracking-wider">
-                CRITICAL THREAT PROTOCOL SYSTEM
-              </span>
+              <Badge variant="danger" size="sm" className="mb-1">
+                SIMULATION MODE
+              </Badge>
               <h2 className="text-2xl font-black tracking-tight mt-0.5">
                 Emergency Dispatch & Evacuation Control
               </h2>
@@ -59,7 +59,7 @@ export default function EmergencyResponsePage() {
             icon="report_problem"
             onClick={() => setIsConfirmModalOpen(true)}
           >
-            INITIATE CODE RED
+            Simulate Full Facility Evacuation
           </Button>
         </div>
         <p className="text-xs text-red-100 max-w-3xl">
@@ -169,7 +169,7 @@ export default function EmergencyResponsePage() {
                     icon="campaign"
                     onClick={() => setIsConfirmModalOpen(true)}
                   >
-                    Broadcast PA Vocal Siren
+                    Preview Emergency Protocol
                   </Button>
                 </div>
               </div>

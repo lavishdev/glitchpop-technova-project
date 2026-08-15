@@ -19,6 +19,8 @@ public class CameraMapper {
                 .healthPercentage(camera.getHealthPercentage())
                 .resolution(camera.getResolution())
                 .fps(camera.getFps())
+                .videoUrl(camera.getVideoUrl())
+                .analysisId(camera.getAnalysisId())
                 .build();
     }
 
