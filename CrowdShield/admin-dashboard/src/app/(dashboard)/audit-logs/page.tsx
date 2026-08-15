@@ -16,6 +16,20 @@ export default function AuditLogsPage() {
     auditLogService.getAuditLogs().then(setLogs);
   }, []);
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return String(dateString);
+    return d.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+  };
+
   const filteredLogs = logs.filter(
     (log) =>
       log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,13 +84,22 @@ export default function AuditLogsPage() {
               {filteredLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-surface-container/50 transition-colors">
                   <td className="px-4 py-3 font-mono font-bold text-primary">{log.id}</td>
-                  <td className="px-4 py-3 font-mono text-on-surface-variant">{log.timestamp}</td>
+                  <td className="px-4 py-3 font-mono text-on-surface-variant">{formatDate(log.timestamp)}</td>
                   <td className="px-4 py-3 font-bold text-on-surface">{log.user}</td>
                   <td className="px-4 py-3 font-mono text-on-surface">{log.action}</td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-surface-container-high text-on-surface-variant">
+                    <Badge
+                      variant={
+                        log.category === "Security"
+                          ? "danger"
+                          : log.category === "System Config"
+                          ? "info"
+                          : "default"
+                      }
+                      size="sm"
+                    >
                       {log.category}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-4 py-3 font-mono text-on-surface-variant">{log.ipAddress}</td>
                   <td className="px-4 py-3 text-right">

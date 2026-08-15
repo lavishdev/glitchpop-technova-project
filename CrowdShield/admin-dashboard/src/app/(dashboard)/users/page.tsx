@@ -41,6 +41,19 @@ export default function UserManagementPage() {
     }
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "N/A";
+    return d.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -101,7 +114,7 @@ export default function UserManagementPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 font-mono text-on-surface-variant">
-                    {new Date(u.createdAt).toLocaleDateString()}
+                    {formatDate(u.createdAt)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button variant="ghost" size="sm" icon="edit">

@@ -33,6 +33,15 @@ export const NAVIGATION_CATEGORIES: NavCategory[] = [
     title: "OPERATIONS",
     items: [
       {
+        id: "ai-analysis",
+        label: "AI Video Analysis",
+        href: "/ai-analysis",
+        icon: "smart_toy",
+        badge: "NEW",
+        badgeColor: "bg-blue-600 text-white animate-pulse",
+        category: "operations",
+      },
+      {
         id: "analytics",
         label: "Crowd Analytics",
         href: "/analytics",

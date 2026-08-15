@@ -18,4 +18,6 @@ public class CameraDto {
     private Double healthPercentage;
     private String resolution;
     private Integer fps;
+    private String videoUrl;
+    private String analysisId;
 }

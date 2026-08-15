@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/fake/fake_auth_repository.dart';
+import '../../../../core/providers/network_providers.dart';
 import '../../domain/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../data/dio/dio_auth_repository.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return FakeAuthRepository();
+  return DioAuthRepository(ref.watch(dioProvider));
 });
 
 class AuthState {

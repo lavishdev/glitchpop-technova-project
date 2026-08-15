@@ -15,9 +15,8 @@ public class AssistantController {
     private final AssistantService assistantService;
 
     @PostMapping("/chat")
-    public ResponseEntity<ApiResponse<String>> chat(@RequestBody Map<String, String> request) {
-        String query = request.getOrDefault("query", "");
-        String response = assistantService.askAssistant(query);
+    public ResponseEntity<ApiResponse<String>> chat(@RequestBody Map<String, Object> request) {
+        String response = assistantService.askAssistant(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

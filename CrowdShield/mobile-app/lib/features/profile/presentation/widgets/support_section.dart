@@ -90,7 +90,7 @@ class SupportSection extends StatelessWidget {
                 onTap: () => _showSupportDialog(
                   context,
                   'FAQs',
-                  'Q: How does 2D Digital Twin work?\nA: It aggregates camera density feeds and plots spatial bottlenecks.\n\nQ: How fast does SOS dispatch?\nA: Immediately notifies nearest patrolling unit within 3 seconds.',
+                  'Q: How does the Venue Zone Map work?\nA: It aggregates camera density feeds and plots spatial bottlenecks.\n\nQ: How fast does SOS dispatch?\nA: Immediately notifies nearest patrolling unit within 3 seconds.',
                 ),
               ),
             ],

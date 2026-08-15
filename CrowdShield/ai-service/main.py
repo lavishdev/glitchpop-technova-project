@@ -27,7 +27,8 @@ app = FastAPI(
     title=settings.SERVICE_NAME,
     version=settings.VERSION,
     debug=settings.DEBUG,
-    lifespan=lifespan
+    lifespan=lifespan,
+    openapi_version="3.0.2"
 )
 
 # CORS Middleware Setup
@@ -53,6 +54,11 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 # Register API Routers
 app.include_router(api_router)
+
+# Mount StaticFiles for serving images (heatmaps, frames)
+from fastapi.staticfiles import StaticFiles
+app.mount("/outputs", StaticFiles(directory=settings.OUTPUTS_DIR), name="outputs")
+app.mount("/uploads", StaticFiles(directory=settings.UPLOADS_DIR), name="uploads")
 
 if __name__ == "__main__":
     import uvicorn

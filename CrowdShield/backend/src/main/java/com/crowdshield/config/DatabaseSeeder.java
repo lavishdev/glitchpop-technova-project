@@ -62,39 +62,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .role("ROLE_SECURITY")
                 .build());
 
-        // 2. Seed Cameras
-        cameraRepository.save(Camera.builder()
-                .name("Main Square Cam")
-                .location("Central Plaza")
-                .zone("Main Square")
-                .status(CameraStatus.ONLINE)
-                .lastSeen(LocalDateTime.now())
-                .healthPercentage(98.5)
-                .resolution("4K UHD")
-                .fps(60)
-                .build());
-
-        cameraRepository.save(Camera.builder()
-                .name("North Gate Cam")
-                .location("Entrance A")
-                .zone("North Gate")
-                .status(CameraStatus.ONLINE)
-                .lastSeen(LocalDateTime.now())
-                .healthPercentage(92.0)
-                .resolution("1080p FHD")
-                .fps(30)
-                .build());
-
-        cameraRepository.save(Camera.builder()
-                .name("East Wing Cam")
-                .location("Hall B")
-                .zone("East Wing")
-                .status(CameraStatus.OFFLINE)
-                .lastSeen(LocalDateTime.now().minusDays(1))
-                .healthPercentage(0.0)
-                .resolution("720p HD")
-                .fps(15)
-                .build());
+        // 2. Mock cameras removed - Cameras are now created dynamically when video is uploaded
 
         // 3. Seed Incidents
         incidentRepository.save(Incident.builder()

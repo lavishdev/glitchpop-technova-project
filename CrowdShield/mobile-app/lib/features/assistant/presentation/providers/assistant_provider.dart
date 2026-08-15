@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/demo_provider.dart';
-import '../../data/fake/fake_assistant_repository.dart';
+import '../../../../core/providers/network_providers.dart';
 import '../../domain/models/chat_message_model.dart';
 import '../../domain/models/suggestion_model.dart';
 import '../../domain/repositories/assistant_repository.dart';
+import '../../data/dio/dio_assistant_repository.dart';
 
 final assistantRepositoryProvider = Provider<AssistantRepository>((ref) {
-  return FakeAssistantRepository();
+  return DioAssistantRepository(ref.watch(dioProvider));
 });
 
 class AssistantState {

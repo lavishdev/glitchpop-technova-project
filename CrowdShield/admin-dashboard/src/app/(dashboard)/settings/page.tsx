@@ -95,9 +95,11 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <Input
               label="Central Webhook Endpoint URL"
-              value={config.webhookUrl}
+              value="https://demo.crowdshield.local/webhooks"
+              disabled
               onChange={(e) => setConfig({ ...config, webhookUrl: e.target.value })}
             />
+            <p className="text-[11px] text-amber-500 font-medium">Demo environment — webhook integration disabled.</p>
             <div className="flex items-center gap-6 text-xs">
               <label className="flex items-center gap-2 cursor-pointer font-semibold text-on-surface">
                 <input

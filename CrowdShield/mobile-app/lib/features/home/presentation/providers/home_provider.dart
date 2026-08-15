@@ -1,61 +1,51 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/demo_provider.dart';
+import '../../../../core/providers/websocket_provider.dart';
 import '../../domain/models/home_model.dart';
+import '../../domain/repositories/home_repository.dart';
+import '../../../../core/providers/network_providers.dart';
+import '../../data/dio/dio_home_repository.dart';
+
+final homeRepositoryProvider = Provider<HomeRepository>((ref) {
+  return DioHomeRepository(ref.watch(dioProvider));
+});
 
 class HomeNotifier extends StateNotifier<AsyncValue<HomeModel>> {
   final Ref _ref;
 
   HomeNotifier(this._ref) : super(const AsyncValue.loading()) {
-    _init();
-  }
-
-  void _init() {
-    _ref.listen<DemoState>(demoProvider, (previous, next) {
-      _updateWithDemoState(next);
-    }, fireImmediately: true);
-  }
-
-  void _updateWithDemoState(DemoState demo) {
-    final homeData = HomeModel(
-      userName: 'Officer Sharma',
-      venueName: demo.venueName,
-      crowdStatus: demo.emergencyStatus,
-      crowdCount: demo.crowdCount,
-      densityPercentage: demo.densityPercentage,
-      riskLevel: demo.riskLevel,
-      activeAlerts: demo.activeAlertsCount,
-      recommendation: 'Reroute via ${demo.recommendedExit}. Heavy congestion near Gate 2.',
-      nearestExit: demo.nearestExit,
-      recentAlerts: [
-        HomeAlertItem(
-          id: 'alt_1',
-          title: 'Congestion near Gate 2 Bottleneck',
-          location: 'Sector B - Main Exit',
-          riskLevel: demo.riskLevel,
-          time: demo.lastUpdated.subtract(const Duration(minutes: 3)),
-        ),
-        HomeAlertItem(
-          id: 'alt_2',
-          title: 'Medical Emergency near Stage A',
-          location: 'Stage A Pit',
-          riskLevel: 'CRITICAL',
-          time: demo.lastUpdated.subtract(const Duration(minutes: 8)),
-        ),
-        HomeAlertItem(
-          id: 'alt_3',
-          title: 'Gate 5 Temporarily Closed',
-          location: 'Gate 5 Entrance',
-          riskLevel: 'MEDIUM',
-          time: demo.lastUpdated.subtract(const Duration(minutes: 25)),
-        ),
-      ],
-    );
-    state = AsyncValue.data(homeData);
+    loadHomeData();
   }
 
   Future<void> loadHomeData() async {
-    final demo = _ref.read(demoProvider);
-    _updateWithDemoState(demo);
+    try {
+      state = const AsyncValue.loading();
+      
+      // Initialize WebSocket
+      final wsClient = _ref.read(webSocketClientProvider);
+      wsClient.connect();
+      
+      // Listen to map updates
+      wsClient.mapStream.listen((data) {
+        // Refresh home data when map updates occur, or handle specifically
+        _fetchHomeData();
+      });
+
+      // Listen to alerts updates
+      wsClient.alertsStream.listen((data) {
+        _fetchHomeData();
+      });
+
+      await _fetchHomeData();
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> _fetchHomeData() async {
+    final repository = _ref.read(homeRepositoryProvider);
+    final homeData = await repository.getHomeData();
+    state = AsyncValue.data(homeData);
   }
 }
 

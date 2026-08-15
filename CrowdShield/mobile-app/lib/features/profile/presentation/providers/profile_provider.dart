@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/fake/fake_profile_repository.dart';
+import '../../../../core/providers/network_providers.dart';
 import '../../domain/models/officer_profile_model.dart';
 import '../../domain/repositories/profile_repository.dart';
+import '../../data/dio/dio_profile_repository.dart';
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  return FakeProfileRepository();
+  return DioProfileRepository(ref.watch(dioProvider));
 });
 
 class ProfileState {

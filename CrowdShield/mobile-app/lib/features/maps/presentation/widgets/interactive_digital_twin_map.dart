@@ -200,7 +200,7 @@ class InteractiveDigitalTwinMap extends StatelessWidget {
                         Icon(Icons.hub_outlined, color: AppColors.safe, size: 14),
                         SizedBox(width: 6),
                         Text(
-                          '2D DIGITAL TWIN LIVE MAP',
+                          'VENUE ZONE MAP',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 11,

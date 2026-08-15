@@ -30,11 +30,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
-    }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value.trim())) {
-      return 'Enter a valid email address';
+      return 'Username or Email is required';
     }
     return null;
   }
@@ -96,11 +92,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CustomTextField(
-            label: 'Email',
-            hint: 'admin@crowdshield.com',
+            label: 'Username or Email',
+            hint: 'admin',
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            prefixIcon: const Icon(Icons.email_outlined),
+            prefixIcon: const Icon(Icons.person_outline),
             validator: _validateEmail,
           ),
           const SizedBox(height: 16),

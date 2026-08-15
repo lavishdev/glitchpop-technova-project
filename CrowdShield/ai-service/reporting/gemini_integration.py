@@ -14,7 +14,7 @@ class GeminiAnalyzer:
         self.api_key = settings.GEMINI_API_KEY
         if self.api_key:
             self.client = genai.Client(api_key=self.api_key)
-            self.model_id = 'gemini-3.6-flash'
+            self.model_id = 'gemini-1.5-flash'
         else:
             self.client = None
 
@@ -27,6 +27,40 @@ class GeminiAnalyzer:
                 "hi": "कोई घोषणा उपलब्ध नहीं है।"
             }
         }
+
+    def chat(self, query: str, context: dict = None) -> str:
+        """Process a conversational query using the Gemini API."""
+        if not self.client:
+            logger.warning("Gemini API key is not set. Returning default chat response.")
+            return "I am the CrowdShield AI Assistant. Gemini integration is currently disabled."
+
+        logger.info(f"Processing chat query: {query}")
+        
+        prompt = (
+            "You are an AI assistant for a crowd management system called CrowdShield. "
+            "You help operators analyze crowd density, incidents, and safety recommendations. "
+            "Respond directly and professionally to the user's query.\n"
+        )
+        
+        if context:
+            prompt += f"\nLive System Context:\n{json.dumps(context, indent=2)}\n"
+
+        prompt += f"\nUser Query: {query}"
+
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_id,
+                contents=prompt
+            )
+            
+            if response.text:
+                return response.text
+            else:
+                return "I'm sorry, I could not generate a response at this time."
+                
+        except Exception as exc:
+            logger.error(f"Gemini API chat failed: {exc}", exc_info=True)
+            return "I'm sorry, I encountered an error while processing your request."
 
     def analyze(self, incident_report: Dict[str, Any]) -> Dict[str, Any]:
         """Send incident report data to Gemini and return structured insights."""

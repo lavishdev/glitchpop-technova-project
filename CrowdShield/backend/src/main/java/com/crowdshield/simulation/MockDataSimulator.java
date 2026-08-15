@@ -28,11 +28,16 @@ public class MockDataSimulator {
     private final NotificationService notificationService;
     private final RecommendationService recommendationService;
     private final com.crowdshield.crowd.CrowdHistoryRepository crowdHistoryRepository;
+    private final AppModeService appModeService;
     
     private final Random random = new Random();
 
     @Scheduled(fixedRate = 5000) // Every 5 seconds
     public void simulateLiveCrowdData() {
+        if (!appModeService.isSimulatorEnabled()) {
+            return; // Skip simulation if live analysis is running
+        }
+
         Map<String, Object> data = new HashMap<>();
         data.put("timestamp", LocalDateTime.now().toString());
         data.put("location", "Main Square");

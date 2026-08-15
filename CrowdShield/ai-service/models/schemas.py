@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -156,3 +156,12 @@ class VideoUploadResponse(BaseModel):
     incident_report: IncidentReportSchema
     pdf_report: Optional[str] = Field(default=None, examples=["outputs/reports/550e8400-e29b-41d4-a716-446655440000_report.pdf"])
     gemini_analysis: GeminiAnalysisSchema
+
+
+class ChatRequest(BaseModel):
+    query: str = Field(..., examples=["What is the current crowd density at Gate 4?"])
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Contextual live data from the application")
+
+
+class ChatResponse(BaseModel):
+    response: str = Field(..., examples=["Based on the latest analysis, the crowd density at Gate 4 is currently HIGH. Please consider opening alternative entry points."])

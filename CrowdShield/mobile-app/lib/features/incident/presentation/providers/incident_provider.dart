@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/fake/fake_incident_repository.dart';
+import '../../../../core/providers/network_providers.dart';
 import '../../domain/models/incident_report_model.dart';
 import '../../domain/repositories/incident_repository.dart';
+import '../../data/dio/dio_incident_repository.dart';
 
 enum IncidentFormStatus { idle, submitting, submitted, error }
 
 final incidentRepositoryProvider = Provider<IncidentRepository>((ref) {
-  return FakeIncidentRepository();
+  return DioIncidentRepository(ref.watch(dioProvider));
 });
 
 class IncidentState {

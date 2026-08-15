@@ -19,6 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-crowdshield").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/ws-crowdshield").setAllowedOriginPatterns("*"); // Raw WS for Flutter
     }
 }
 

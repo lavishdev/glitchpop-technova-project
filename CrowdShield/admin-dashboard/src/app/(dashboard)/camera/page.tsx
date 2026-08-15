@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/Input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cameraService } from "@/features/cameras/services/cameraService";
 import { CameraStream } from "@/features/cameras/types";
+import { MOCK_SYSTEM_CONFIG } from "@/constants/mockData";
 
 export default function CameraInfrastructurePage() {
   const queryClient = useQueryClient();
-  const { data: cameras = [] } = useQuery({ queryKey: ["cameras"], queryFn: cameraService.getCameras });
+  const { data: camerasData = [] } = useQuery({ queryKey: ["cameras"], queryFn: cameraService.getCameras });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newCamName, setNewCamName] = useState("");
   const [newCamZone, setNewCamZone] = useState("");
@@ -43,6 +44,19 @@ export default function CameraInfrastructurePage() {
     setNewCamIp("");
   };
 
+  // Pad to 4 cameras for demo purposes
+  const cameras = [...camerasData];
+  if (cameras.length > 0 && cameras.length < 4) {
+    const templateCam = cameras[0];
+    for (let i = cameras.length; i < 4; i++) {
+      cameras.push({
+        ...templateCam,
+        id: templateCam.id + i * 100,
+        name: `CAM-0${i + 1} • Secondary Feed`,
+      });
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -52,10 +66,13 @@ export default function CameraInfrastructurePage() {
             Camera Infrastructure & Sensor Array
           </h2>
           <p className="text-xs text-on-surface-variant">
-            248 active optical, thermal, and wide-angle CCTV feeds across all stadium zones.
+            {MOCK_SYSTEM_CONFIG.cameras.active} active optical, thermal, and wide-angle CCTV feeds across all stadium zones.
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <span className="text-xs text-on-surface-variant font-medium mr-2">
+            Showing {Math.min(cameras.length, MOCK_SYSTEM_CONFIG.cameras.active)} of {MOCK_SYSTEM_CONFIG.cameras.active} active feeds
+          </span>
           <Button
             variant="primary"
             size="sm"
@@ -69,83 +86,102 @@ export default function CameraInfrastructurePage() {
 
       {/* Grid of Feeds */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {cameras.map((cam) => (
-          <Card
-            key={cam.id}
-            title={cam.name}
-            subtitle={`${cam.zone} • ${cam.location}`}
-            icon="videocam"
-            action={
-              <Badge
-                variant={
-                  cam.status === "ONLINE"
-                    ? "success"
-                    : cam.status === "MAINTENANCE"
-                    ? "warning"
-                    : "danger"
-                }
-                size="sm"
-                dot
-              >
-                {cam.status}
-              </Badge>
-            }
-          >
-            <div className="space-y-3">
-              {/* Simulated Video Stream Canvas */}
-              <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video border border-slate-800 flex flex-col justify-between p-3 text-white">
-                <div
-                  className="absolute inset-0 bg-cover bg-center opacity-85"
-                  style={{ backgroundImage: `url(https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=800&q=80)` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40" />
+        {cameras.length === 0 ? (
+          <div className="col-span-1 md:col-span-2 lg:col-span-2 p-12 flex flex-col items-center justify-center text-slate-400 bg-slate-900 border border-slate-800 rounded-xl border-dashed">
+            <span className="material-symbols-outlined text-4xl mb-2">videocam_off</span>
+            <p className="font-medium">No active video feed</p>
+            <p className="text-sm">Upload a video to start simulated CCTV</p>
+          </div>
+        ) : (
+          cameras.map((cam) => (
+            <Card
+              key={cam.id}
+              title={cam.name}
+              subtitle={`${cam.zone} • ${cam.location}`}
+              icon="videocam"
+              action={
+                <Badge
+                  variant={
+                    cam.status === "ONLINE"
+                      ? "success"
+                      : cam.status === "MAINTENANCE"
+                      ? "warning"
+                      : "danger"
+                  }
+                  size="sm"
+                  dot
+                >
+                  {cam.status}
+                </Badge>
+              }
+            >
+              <div className="space-y-3">
+                {/* Simulated Video Stream Canvas */}
+                <div className="relative rounded-xl overflow-hidden bg-slate-950 aspect-video border border-slate-800 flex flex-col justify-between p-3 text-white">
+                  {cam.videoUrl ? (
+                    <video
+                      src={cam.videoUrl}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="absolute inset-0 w-full h-full object-cover opacity-85"
+                    />
+                  ) : (
+                    <div
+                      className="absolute inset-0 bg-cover bg-center opacity-85"
+                      style={{ backgroundImage: `url(https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=800&q=80)` }}
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/40" />
 
-                {/* Top Feed Overlay Info */}
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="px-2.5 py-1 text-[10px] font-bold bg-slate-900/90 backdrop-blur-md rounded text-emerald-400 flex items-center gap-1.5 border border-emerald-500/30">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    LIVE FEED • {cam.fps} FPS
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-300 bg-slate-900/90 px-2 py-1 rounded border border-slate-700">
-                    {cam.resolution}
-                  </span>
-                </div>
-
-                {/* Bottom Stream Controls Overlay */}
-                <div className="relative z-10 flex items-center justify-between text-xs bg-slate-900/80 backdrop-blur-md p-2 rounded-lg border border-slate-700">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-blue-400 font-bold">Optical PTZ</span>
-                    <span className="text-slate-500">•</span>
-                    <span className="text-slate-300">
-                      AI Vision: ACTIVE
+                  {/* Top Feed Overlay Info */}
+                  <div className="relative z-10 flex items-center justify-between">
+                    <span className="px-2.5 py-1 text-[10px] font-bold bg-slate-900/90 backdrop-blur-md rounded text-emerald-400 flex items-center gap-1.5 border border-emerald-500/30">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      {cam.videoUrl ? "SIMULATED LIVE" : "LIVE FEED"} • {cam.fps} FPS
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-300 bg-slate-900/90 px-2 py-1 rounded border border-slate-700">
+                      {cam.resolution}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      className="p-1 hover:bg-slate-700 rounded text-slate-300"
-                      title="PTZ Pan/Tilt"
-                    >
-                      <span className="material-symbols-outlined text-base">open_with</span>
-                    </button>
-                    <button
-                      className="p-1 hover:bg-slate-700 rounded text-slate-300"
-                      title="Full Screen"
-                    >
-                      <span className="material-symbols-outlined text-base">fullscreen</span>
-                    </button>
+
+                  {/* Bottom Stream Controls Overlay */}
+                  <div className="relative z-10 flex items-center justify-between text-xs bg-slate-900/80 backdrop-blur-md p-2 rounded-lg border border-slate-700 mt-auto">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-blue-400 font-bold">Optical PTZ</span>
+                      <span className="text-slate-500">•</span>
+                      <span className="text-slate-300">
+                        AI Vision: ACTIVE
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        className="p-1 hover:bg-slate-700 rounded text-slate-300"
+                        title="PTZ Pan/Tilt"
+                      >
+                        <span className="material-symbols-outlined text-base">open_with</span>
+                      </button>
+                      <button
+                        className="p-1 hover:bg-slate-700 rounded text-slate-300"
+                        title="Full Screen"
+                      >
+                        <span className="material-symbols-outlined text-base">fullscreen</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between text-xs pt-1">
-                <span className="text-on-surface-variant font-mono">ID: {cam.id}</span>
-                <Button variant="ghost" size="sm" icon="tune">
-                  Configure Stream
-                </Button>
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <span className="text-on-surface-variant font-mono">ID: {cam.id}</span>
+                  <Button variant="ghost" size="sm" icon="tune">
+                    Configure Stream
+                  </Button>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Add Camera Modal */}
