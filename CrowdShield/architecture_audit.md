@@ -44,12 +44,18 @@ It solves the problem of predicting and managing crowd surges, preventing stampe
 CrowdShield/
 │
 ├── ai-service/ (FastAPI / Python)
+│   ├── analytics/                 # CV pipeline orchestrators
 │   ├── api/routes.py              # Central HTTP endpoints (/upload-video, /chat)
+│   ├── config/                    # Logging and app settings
+│   ├── detectors/                 # YOLOv11 person detection utilities
+│   ├── heatmap/                   # Gaussian mapping generation
 │   ├── models/schemas.py          # Pydantic validation schemas
-│   ├── tracking/                  # CV logic (person_detector.py, heatmap_generator.py, multi_object_tracker.py)
+│   ├── tracking/                  # CV logic (person_detector.py, multi_object_tracker.py)
 │   ├── risk/                      # Risk assessment and alert generation rules
 │   ├── recommendation/            # Heuristic-based recommendation engine
 │   ├── reporting/                 # Gemini integration and PDF generation
+│   ├── simulation/                # Test utilities
+│   ├── utils/                     # File utilities, logger
 │   ├── uploads/ & outputs/        # Static directories for raw video, extracted frames, heatmaps
 │   └── main.py                    # App entry point, CORS, and static file mounts
 │
@@ -60,10 +66,10 @@ CrowdShield/
 │       ├── security/              # JWT Auth filters, SecurityConfig, UserDetailsService
 │       ├── simulation/            # MockDataSimulator.java (The fake data generator)
 │       ├── websocket/             # WebSocketConfig (STOMP on /ws-crowdshield)
-│       └── [domain]/              # Entities/Repos/Services for alert, incident, camera, crowd, user
+│       └── [domain]/              # Entities/Repos/Services for alert, camera, crowd, dashboard, emergency, incident, mobile, notification, recommendation, settings, system, user
 │
 ├── admin-dashboard/ (Next.js / React)
-│   ├── src/app/(dashboard)/       # Next.js App Router pages (mission-control, ai-analysis, enhanced)
+│   ├── src/app/(dashboard)/       # Next.js App Router pages (mission-control, ai-analysis, enhanced, audit-logs, alerts, analytics, camera, emergency, incidents, settings, users)
 │   ├── src/components/            # Reusable UI (Cards, Badges, Modals)
 │   ├── src/features/              # Domain slices (services, types, components)
 │   └── src/services/ws/           # stompClient.ts (WebSocket connection)
@@ -172,6 +178,8 @@ Spring Boot acts purely as an API gateway, state manager, and router.
 - `CrowdHistory`: Time-series record of density at a location.
 - `Alert`: Triggered warnings (`severity`, `message`).
 - `Incident`: Formal security tickets assigned to users.
+- `Settings`: Platform and user-specific configurations.
+- `SystemHealth`: Represents operational metrics for the backend and AI nodes.
 
 ---
 
@@ -196,6 +204,7 @@ Spring Boot acts purely as an API gateway, state manager, and router.
 - `/mission-control`: Renders actual `<video>` streams for uploaded MP4s (Virtual CCTV) with overlaid AI stats.
 - `/dashboard/enhanced`: Subscribes to STOMP WebSocket `/topic/live-heatmap` to render the true FastAPI generated spatial heatmap.
 - `/ai-analysis`: The file upload interface orchestrating the FastAPI pipeline.
+- *Additional Control Screens*: `/audit-logs`, `/alerts`, `/analytics`, `/camera`, `/emergency`, `/incidents`, `/settings`, `/users`.
 
 **State & API:** 
 Uses React Query (`@tanstack/react-query`) for polling standard endpoints and Axios instances (`src/lib/axios.ts`) appending the `localStorage` JWT.
@@ -291,6 +300,8 @@ The map is a static interface (now renamed to "Venue Zone Map") representing zon
 | POST | `/api/cameras` | Spring | JWT | Add camera sensor | USED |
 | GET | `/api/incidents` | Spring | JWT | Fetch security tickets | USED |
 | POST | `/api/assistant/chat` | Spring | JWT | Chat with Gemini | USED |
+| GET | `/api/settings` | Spring | JWT | Fetch platform settings | USED |
+| GET | `/api/system/health` | Spring | JWT | System metrics & heartbeat | USED |
 | POST | `/upload-video` | FastAPI | None | Internal CV Pipeline entrypoint | INTERNAL |
 | POST | `/chat` | FastAPI | None | Internal LLM proxy | INTERNAL |
 
