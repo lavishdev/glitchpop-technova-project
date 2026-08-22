@@ -3,7 +3,7 @@ class ApiConstants {
   // Defaults to 10.0.2.2 for Android emulator
   static const String baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://10.43.17.1:8080/api',
+    defaultValue: 'http://192.168.1.5:8080/api',
   );
   
   static const String login = '/auth/login';
@@ -22,6 +22,6 @@ class ApiConstants {
   // Configurable via --dart-define=WS_URL=...
   static const String wsUrl = String.fromEnvironment(
     'WS_URL',
-    defaultValue: 'ws://10.43.17.1:8080/ws-crowdshield',
+    defaultValue: 'ws://192.168.1.5:8080/ws-crowdshield',
   );
 }
