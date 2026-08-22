@@ -55,7 +55,7 @@ export default function EmergencyResponsePage() {
           <Button
             variant="danger"
             size="lg"
-            className="bg-white text-red-700 hover:bg-slate-100 font-bold shadow-lg"
+            className="!bg-white !text-red-700 hover:!bg-red-50 font-bold shadow-xl border-none"
             icon="report_problem"
             onClick={() => setIsConfirmModalOpen(true)}
           >
